@@ -1,11 +1,13 @@
+use crate::graphics::core::GraphicsCore;
 use crate::graphics::wrappers::texture::TextureData;
 
+use glium::texture::{MipmapsOption, RawImage2d};
 use index_pool::IndexPool;
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Copy, Clone, Default, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct TextureId(u32);
 
-#[derive(Default, Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Copy, Clone, Default, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct SubtextureId(u32);
 
 #[derive(Default)]
@@ -16,15 +18,31 @@ pub struct TextureManager {
     perm_textures: Vec<Texture>,
 }
 
-const PERM_MASK: u32 = 0x8000_0000;
+const TEMP_MASK: u32 = 0x8000_0000;
 
 impl TextureManager {
+    pub fn new(core: &GraphicsCore) -> Result<Self, failure::Error> {
+        let mut tm = Self::default();
+
+        #[rustfmt::skip]
+        let def_tex = vec![
+            0xFF, 0x00, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF,
+            0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0xFF,
+        ];
+        let def_tex = RawImage2d::from_raw_rgba(def_tex, (2, 2));
+        let def_tex = TextureData::new(core, vec![def_tex], MipmapsOption::NoMipmap)?;
+        let def_tex = Texture::new(def_tex, 1, 1, true);
+        assert_eq!(tm.insert(def_tex, true), TextureId::default());
+
+        Ok(tm)
+    }
+
     pub fn get(&self, id: TextureId) -> Option<&Texture> {
-        if id.0 & PERM_MASK != 0 {
-            self.perm_textures.get((id.0 & !PERM_MASK) as usize)
+        if id.0 & TEMP_MASK == 0 {
+            self.perm_textures.get(id.0 as usize)
         } else {
             self.temp_textures
-                .get(id.0 as usize)
+                .get((id.0 & !TEMP_MASK) as usize)
                 .unwrap_or(&None)
                 .as_ref()
         }
@@ -32,7 +50,7 @@ impl TextureManager {
 
     pub fn insert(&mut self, texture: Texture, permanent: bool) -> TextureId {
         if permanent {
-            let id = self.perm_textures.len() as u32 | PERM_MASK;
+            let id = self.perm_textures.len() as u32;
             self.perm_textures.push(texture);
             TextureId(id)
         } else {
@@ -42,16 +60,16 @@ impl TextureManager {
             } else {
                 self.temp_textures[id] = Some(texture);
             }
-            TextureId(id as u32)
+            TextureId(id as u32 | TEMP_MASK)
         }
     }
 
     pub fn free(&mut self, id: TextureId) -> bool {
-        if id.0 & PERM_MASK != 0 {
+        if id.0 & TEMP_MASK == 0 {
             return false;
         }
 
-        let id = id.0 as usize;
+        let id = (id.0 & !TEMP_MASK) as usize;
 
         if !self.temp_free.return_id(id).is_ok() {
             return false;
@@ -73,9 +91,21 @@ pub struct Texture {
     pub rows: u32,
     pub cols: u32,
     pub layers: u32,
+    pub pixel_art: bool,
 }
 
 impl Texture {
+    pub fn new(data: TextureData, rows: u32, cols: u32, pixel_art: bool) -> Self {
+        let layers = data.texture().array_size();
+        Texture {
+            data,
+            rows,
+            cols,
+            layers,
+            pixel_art,
+        }
+    }
+
     pub fn index(&self, row: u32, col: u32, layer: u32) -> SubtextureId {
         let stride = self.cols;
         let pitch = stride * self.rows;

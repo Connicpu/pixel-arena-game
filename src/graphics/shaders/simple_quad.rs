@@ -38,10 +38,11 @@ pub fn load(core: &GraphicsCore) -> Result<SimpleQuadShader, Error> {
 #[derive(Copy, Clone)]
 pub struct QuadInstance {
     pub i_uvrect: [f32; 4],
-    pub i_transform0: [f32; 3],
-    pub i_transform1: [f32; 3],
+    pub i_transform0: [f32; 2],
+    pub i_transform1: [f32; 2],
+    pub i_transform2: [f32; 2],
     pub i_layer: f32,
-    pub i_imagelayer: i32,
+    pub i_imagelayer: u32,
 }
 
 glium::implement_vertex!(
@@ -49,6 +50,7 @@ glium::implement_vertex!(
     i_uvrect,
     i_transform0,
     i_transform1,
+    i_transform2,
     i_layer,
     i_imagelayer
 );
@@ -70,10 +72,10 @@ const fn qvert(x: f32, y: f32, u: f32, v: f32) -> QuadVertex {
 }
 
 static QUADS: [QuadVertex; 6] = [
-    qvert(-0.5, 0.5, 0.0, 1.0),
-    qvert(0.5, 0.5, 1.0, 1.0),
-    qvert(0.5, -0.5, 1.0, 0.0),
-    qvert(-0.5, 0.5, 0.0, 1.0),
-    qvert(0.5, -0.5, 1.0, 0.0),
-    qvert(-0.5, -0.5, 0.0, 0.0),
+    qvert(-0.5, 0.5, 0.0, 0.0),
+    qvert(0.5, 0.5, 1.0, 0.0),
+    qvert(0.5, -0.5, 1.0, 1.0),
+    qvert(-0.5, 0.5, 0.0, 0.0),
+    qvert(0.5, -0.5, 1.0, 1.0),
+    qvert(-0.5, -0.5, 0.0, 1.0),
 ];
