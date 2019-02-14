@@ -4,4 +4,25 @@ version = "0.1.0"
 authors = ["Connie Hilarides <conni_h@outlook.com>"]
 edition = "2018"
 
+[features]
+default = ["dx12"]
+dx12 = ["gfx-backend-dx12"]
+vulkan = ["gfx-backend-metal"]
+metal = ["gfx-backend-vulkan"]
+
 [dependencies]
+conniecs = "0.1.4"
+conniecs-derive = "0.1.2"
+nalgebra = "0.17.0"
+gfx-backend-dx12 = { version = "0.1.1", optional = true }
+gfx-backend-metal = { version = "0.1.0", optional = true }
+gfx-backend-vulkan = { version = "0.1.0", optional = true }
+gfx-hal = "0.1.0"
+winit = "0.18.1"
+failure = "0.1.5"
+failure_derive = "0.1.5"
+math2d = "0.2.0-alpha1"
+index-pool = "1.0.11"
+
+[build-dependencies]
+shaderc = "0.3.16"
