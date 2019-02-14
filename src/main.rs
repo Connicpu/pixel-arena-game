@@ -28,12 +28,14 @@ fn main() -> Result<(), failure::Error> {
 
     let mut world: World = conniecs::World::with_services(services);
 
-    for y in -4..=4 {
-        for x in -8..=8 {
+    for y in -3..=3 {
+        for x in -5..=5 {
+            use components::Transform;
             world.data.create_entity(|e, c, _s| {
-                let mut transform = components::Transform::default();
-                transform.pos = [x as f32 * 1.3, y as f32 * 1.3].into();
-                c.transform.add(e, transform);
+                c.transform.add(e, Transform {
+                    pos: [x as f32 * 1.4, y as f32 * 1.4].into(),
+                    ..Transform::default()
+                });
                 
                 c.sprite.add(e, Default::default());
             });

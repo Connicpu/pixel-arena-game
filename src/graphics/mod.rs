@@ -14,6 +14,7 @@ pub struct GraphicsState {
     pub camera: camera::Camera,
     pub textures: textures::TextureManager,
     pub frame: frame::CurrentFrame,
+    pub is_fullscreen: bool,
 }
 
 impl GraphicsState {
@@ -23,6 +24,7 @@ impl GraphicsState {
         let camera = camera::Camera::new(&core).context("initializing camera")?;
         let textures = textures::TextureManager::new(&core).context("creating texture manager")?;
         let frame = Default::default();
+        let is_fullscreen = false;
 
         Ok(GraphicsState {
             core,
@@ -30,6 +32,7 @@ impl GraphicsState {
             camera,
             textures,
             frame,
+            is_fullscreen,
         })
     }
 }
