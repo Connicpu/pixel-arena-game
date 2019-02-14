@@ -7,13 +7,9 @@ pub struct Shaders {
 }
 
 impl Shaders {
-    pub fn new(core: &mut GraphicsCore) -> Result<Self, failure::Error> {
+    pub fn new(core: &GraphicsCore) -> Result<Self, failure::Error> {
         let simple_quad = simple_quad::load(core)?;
 
         Ok(Shaders { simple_quad })
-    }
-
-    pub unsafe fn destroy(self, core: &GraphicsCore) {
-        self.simple_quad.destroy(core)
     }
 }

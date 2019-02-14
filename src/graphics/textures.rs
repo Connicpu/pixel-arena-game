@@ -1,5 +1,4 @@
 use crate::graphics::wrappers::texture::TextureData;
-use crate::graphics::core::GraphicsCore;
 
 use index_pool::IndexPool;
 
@@ -47,7 +46,7 @@ impl TextureManager {
         }
     }
 
-    pub unsafe fn free(&mut self, id: TextureId, core: &GraphicsCore) -> bool {
+    pub fn free(&mut self, id: TextureId) -> bool {
         if id.0 & PERM_MASK != 0 {
             return false;
         }
@@ -58,29 +57,14 @@ impl TextureManager {
             return false;
         }
 
-        self.temp_textures[id]
-            .take()
-            .expect("It should be there...")
-            .data
-            .destroy(core);
+        self.temp_textures[id] = None;
 
         true
     }
 
-    pub unsafe fn free_all_temp(&mut self, core: &GraphicsCore) {
-        for tex in self.temp_textures.drain(..) {
-            if let Some(tex) = tex {
-                tex.data.destroy(core);
-            }
-        }
+    pub fn free_all_temp(&mut self) {
+        self.temp_textures.clear();
         self.temp_free.clear();
-    }
-
-    pub unsafe fn destroy(mut self, core: &GraphicsCore) {
-        self.free_all_temp(core);
-        for tex in self.perm_textures {
-            tex.data.destroy(core);
-        }
     }
 }
 
@@ -118,5 +102,3 @@ impl Texture {
         .into()
     }
 }
-
-

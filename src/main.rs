@@ -21,7 +21,7 @@ fn main() -> Result<(), failure::Error> {
     // Create graphics core
     let mut graphics = graphics::GraphicsState::new()?;
 
-    println!("{:?}", graphics.core.window.get_inner_size());
+    println!("{:?}", graphics.core.window().get_inner_size());
 
     graphics.core.events_loop.run_forever(|e| {
         use winit::ControlFlow::{Break, Continue};
