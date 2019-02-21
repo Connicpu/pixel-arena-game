@@ -49,7 +49,7 @@ impl CurrentFrame {
                 .context("creating gameplay framebuffer")?
         };
         
-        gameplay_frame.clear_color_srgb_and_depth((0.1, 0.7, 0.1, 1.0), 0.0);
+        gameplay_frame.clear_color_srgb_and_depth((0.5, 0.5, 0.5, 1.0), 0.0);
 
         self.window_frame = Some(frame);
         self.gameplay_frame = Some(gameplay_frame);

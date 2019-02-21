@@ -2,11 +2,11 @@ use failure::ResultExt;
 
 pub mod camera;
 pub mod core;
+pub mod frame;
 pub mod shaders;
 pub mod systems;
 pub mod textures;
 pub mod wrappers;
-pub mod frame;
 
 pub struct GraphicsState {
     pub core: core::GraphicsCore,

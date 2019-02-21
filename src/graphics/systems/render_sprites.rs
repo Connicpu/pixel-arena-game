@@ -1,4 +1,3 @@
-use crate::components::{Sprite, Transform};
 use crate::graphics::shaders::simple_quad::QuadInstance;
 use crate::graphics::textures::{SubtextureId, TextureId};
 use crate::{DataHelper, EntityIter};
@@ -30,8 +29,10 @@ fn process(r: &mut RenderSprites, entities: EntityIter, data: &mut DataHelper) {
     let mut num_draws = 0;
 
     for entity in entities {
-        let transform: &Transform = &data.components.transform[entity];
-        let sprite: &Sprite = &data.components.sprite[entity];
+        let transform = &mut data.components.transform[entity];
+        let sprite = &data.components.sprite[entity];
+
+        transform.rotation += 0.05;
 
         let tid = sprite.texture;
 
@@ -63,7 +64,7 @@ fn process(r: &mut RenderSprites, entities: EntityIter, data: &mut DataHelper) {
     }
 
     let num_buffers = {
-        use std::cmp::{min, max};
+        use std::cmp::{max, min};
         min(num_draws, max(2, min(8, num_draws / 4 + 1)))
     };
     let make_buf = || {

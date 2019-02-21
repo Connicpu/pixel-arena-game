@@ -1,6 +1,7 @@
 use crate::graphics::core::GraphicsCore;
 use crate::graphics::wrappers::texture::TextureData;
 
+use failure::Fallible;
 use glium::texture::{MipmapsOption, RawImage2d};
 use index_pool::IndexPool;
 
@@ -24,14 +25,7 @@ impl TextureManager {
     pub fn new(core: &GraphicsCore) -> Result<Self, failure::Error> {
         let mut tm = Self::default();
 
-        #[rustfmt::skip]
-        let def_tex = vec![
-            0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0xFF, 0xFF,
-            0xFF, 0xFF, 0x00, 0xFF, 0x00, 0x00, 0x00, 0xFF,
-        ];
-        let def_tex = RawImage2d::from_raw_rgba(def_tex, (2, 2));
-        let def_tex = TextureData::new(core, vec![def_tex], MipmapsOption::NoMipmap)?;
-        let def_tex = Texture::new(def_tex, 1, 1, true);
+        let def_tex = Self::create_def_tex(core)?;
         assert_eq!(tm.insert(def_tex, true), TextureId::default());
 
         Ok(tm)
@@ -83,6 +77,23 @@ impl TextureManager {
     pub fn free_all_temp(&mut self) {
         self.temp_textures.clear();
         self.temp_free.clear();
+    }
+
+    fn create_def_tex(core: &GraphicsCore) -> Fallible<Texture> {
+        #[rustfmt::skip]
+        static DEF_TEX: &[u8] = &hex!("
+            5BCEFA ff 5BCEFA ff 5BCEFA ff 5BCEFA ff 5BCEFA ff
+            F5A9B8 ff F5A9B8 ff F5A9B8 ff F5A9B8 ff F5A9B8 ff
+            FFFFFF ff FFFFFF ff FFFFFF ff FFFFFF ff FFFFFF ff
+            F5A9B8 ff F5A9B8 ff F5A9B8 ff F5A9B8 ff F5A9B8 ff
+            5BCEFA ff 5BCEFA ff 5BCEFA ff 5BCEFA ff 5BCEFA ff
+        ");
+        let def_tex = Vec::from(DEF_TEX);
+        let def_tex = RawImage2d::from_raw_rgba(def_tex, (5, 5));
+        let def_tex = TextureData::new(core, vec![def_tex], MipmapsOption::NoMipmap)?;
+        let def_tex = Texture::new(def_tex, 1, 1, true);
+
+        Ok(def_tex)
     }
 }
 
