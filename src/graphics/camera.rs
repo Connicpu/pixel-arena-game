@@ -63,9 +63,9 @@ impl Camera {
         let mat = Matrix3x2f::translation(self.position + self.offset)
             * Matrix3x2f::scaling(scale, (0.0, 0.0))
             * Matrix3x2f::skew(self.skew.x, self.skew.y, (0.0, 0.0))
-            * Matrix3x2f::rotation(self.rotation, (0.0, 0.0));
+            * Matrix3x2f::rotation(-self.rotation, (0.0, 0.0));
 
-        mat.inverse()
+        mat.unchecked_inverse(mat.determinant())
     }
 
     fn make_cambuf(&self, m: &math2d::Matrix3x2f, core: &GraphicsCore) -> CamBuf {

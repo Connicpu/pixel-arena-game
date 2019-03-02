@@ -1,16 +1,30 @@
+use crate::tiled::raw::tileset::animation::Animation;
+use crate::tiled::raw::image::Image;
+use crate::tiled::raw::objects::ObjectGroup;
 use crate::tiled::raw::context::ParseContext;
-use crate::tiled::raw::TileId;
+use crate::tiled::raw::properties::Properties;
+use crate::tiled::raw::LocalTileId;
 
+use std::sync::Arc;
 use failure::Fallible;
 use xml::attribute as xa;
 
-#[derive(Clone, Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Tile {
-    pub id: TileId,
+    pub id: LocalTileId,
     pub tiletype: Option<String>,
     pub terrain: Option<String>,
     pub probability: Option<f32>,
-    pub properties: Option<TileProperties>,
+    pub properties: Properties,
+
+    #[serde(with = "crate::tiled::raw::image::imgoptarcserde")]
+    pub image: Option<Arc<Image>>,
+
+    #[serde(with = "crate::tiled::raw::objects::objgrpoptarcserde")]
+    pub objects: Option<Arc<ObjectGroup>>,
+
+    #[serde(with = "crate::tiled::raw::tileset::animation::anmoptarcserde")]
+    pub animation: Option<Arc<Animation>>,
 }
 
 impl Tile {
@@ -18,18 +32,24 @@ impl Tile {
         parse_tag! {
             context; attrs;
             <tile
-                id = "id"(TileId)
+                id = "id"(LocalTileId)
                 ?tiletype = "type"(String)
                 ?terrain = "terrain"(String)
                 ?probability = "probability"(f32)
-            >
+                >
 
-                <properties> => TileProperties::parse_tag,
+                <properties> => Properties::parse_tag,
+                <image> => Image::parse_tag,
+                <objectgroup> => ObjectGroup::parse_tag,
+                <animation> => Animation::parse_tag,
 
             </tile>
         };
 
-        let properties = properties.first().cloned();
+        let properties = properties.pop().unwrap_or_default();
+        let image = image.pop().map(Arc::new);
+        let objects = objectgroup.pop().map(Arc::new);
+        let animation = animation.pop().map(Arc::new);
 
         Ok(Tile {
             id,
@@ -37,52 +57,9 @@ impl Tile {
             terrain,
             probability,
             properties,
+            image,
+            objects,
+            animation,
         })
-    }
-}
-
-#[derive(Clone, Debug, Default)]
-pub struct TileProperties {
-    pub properties: Vec<TileProperty>,
-}
-
-impl TileProperties {
-    pub fn parse_tag(
-        context: &mut ParseContext,
-        attrs: &[xa::OwnedAttribute],
-    ) -> Fallible<TileProperties> {
-        parse_tag! {
-            context; attrs;
-            <properties>
-                <property> => TileProperty::parse_tag,
-            </properties>
-        }
-
-        let properties = property;
-
-        Ok(TileProperties { properties })
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct TileProperty {
-    pub name: String,
-    pub value: String,
-    pub kind: String,
-}
-
-impl TileProperty {
-    pub fn parse_tag(
-        context: &mut ParseContext,
-        attrs: &[xa::OwnedAttribute],
-    ) -> Fallible<TileProperty> {
-        parse_tag! {
-            context; attrs;
-            <property name="name"(String) value="value"(String) ?kind="type"(String) />
-        };
-
-        let kind = kind.unwrap_or_else(|| "string".into());
-
-        Ok(TileProperty { name, value, kind })
     }
 }

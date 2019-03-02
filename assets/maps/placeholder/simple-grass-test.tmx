@@ -4,17 +4,17 @@
  <layer id="1" name="Tile Layer 1" width="100" height="100">
   <data encoding="base64" compression="zlib">
    <chunk x="-16" y="-16" width="16" height="16">
-    eJxjYBgFQwWIAbE4Gh5I/eoU6hcmQ786EuYiQz/IThEo1iJRvxmafisS9TOg6RcZBPoBlQcEfQ==
-   </chunk>
+   eJxjYBgFQwWIAbE4Gh5I/eoU6uchQ786EpYhQz/IThEo1iJRvxkQ6yDptyJRPwgII+kXGQT6Aa4TBJo=
+  </chunk>
    <chunk x="0" y="-16" width="16" height="16">
-    eJxjYBgFAwnE8WBJOuhXR8Lk6BeBYlEy9bMDMQcQc6O5RZ1I/SB7JIBYG4id0dxDrP81gNgaiEPQ9FsSoR+k1gVKo+snBoDUBgKxERAnk6kf2V5S9QMAVlkJKA==
-   </chunk>
+   eJxjYBgFAwnE8WBJOuhXR8Lk6BeBYl4y9bMDMQcQy6K5RZ1I/SB7JIC4CIid0dxDrP81gNgaiEOQ9OsCsSUR+kFqXaA0sn5RIvTC9AcCsREQJ5OpH9leUvUDAMYRCYk=
+  </chunk>
    <chunk x="-16" y="0" width="16" height="16">
-    eJxjYCANCAOxIRAbAbETiXph+kWgOIRC/Ylk6GcDYnYkTCowA2JzJDwKRsFQBgBpPwLa
-   </chunk>
+   eJxjYCANCAOxIRAbAbETiXph+kWgOIRC/Ylk6GcDYnYkTCowA2JzJDwKRsFQBgBpPwLa
+  </chunk>
    <chunk x="0" y="0" width="16" height="16">
-    eJwzYmBgSAZiETQsykAcQNdHqn4jKDYmUz87FHMgsUGYk0j95lBsgcQGYUsi9Y+CUTCUAQAzJgQo
-   </chunk>
+   eJwzYmBgSAZiETQsykAcQNdHqn4jKHYmUz87FJsgsUGYk0j95lBsgcQGYUsi9Y+CUTCUAQD4RgRk
+  </chunk>
   </data>
  </layer>
 </map>

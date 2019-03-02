@@ -6,7 +6,7 @@ macro_rules! parse_tag {
         $attrs:ident;
         <$open:ident $($val:ident=$valname:literal($valkind:ty))* $(?$oval:ident=$ovalname:literal($ovalkind:ty))*>
         $(
-            $content:ident
+            $content:ident,
         )?
         $(
             <$childtag:ident> => $childparse:expr,
@@ -57,7 +57,7 @@ macro_rules! parse_tag {
                     format!("Unexpected xml token {:?}", tok)
                 ))
             }
-        }
+        };
     };
     (
         $context:ident;

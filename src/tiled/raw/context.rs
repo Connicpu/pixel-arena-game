@@ -13,6 +13,7 @@ pub struct ParseContext<'a> {
     pub tilesets: &'a mut HashMap<Source, Arc<Tileset>>,
     pub warnings: &'a mut Vec<String>,
     pub config: &'a xml::ParserConfig,
+    pub parseorder: i32,
 }
 
 impl<'a> ParseContext<'a> {
@@ -29,6 +30,7 @@ impl<'a> ParseContext<'a> {
             tilesets: &mut *self.tilesets,
             warnings: &mut *self.warnings,
             config: self.config,
+            parseorder: 0,
         };
 
         loop {
@@ -48,22 +50,30 @@ impl<'a> ParseContext<'a> {
     pub fn warning(&mut self, msg: impl Into<String>) {
         self.warnings.push(msg.into());
     }
+
+    pub fn parseorder(&mut self) -> ParseOrder {
+        self.parseorder += 1;
+        ParseOrder(self.parseorder)
+    }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct ParseOrder(i32);
+
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Source {
     File(PathBuf),
 }
 
 impl Source {
     pub fn new_file(file: impl AsRef<Path>) -> Source {
-        Source::File(dunce::canonicalize(file).unwrap())//.canonicalize().unwrap())
+        Source::File(dunce::canonicalize(file).unwrap())
     }
 
     pub fn relative(&self, rel: &str) -> Source {
         match self {
             Source::File(file) => {
-                Source::File(dunce::canonicalize(file.parent().unwrap().join(rel)).unwrap())//.canonicalize().unwrap())
+                Source::File(dunce::canonicalize(file.parent().unwrap().join(rel)).unwrap())
             }
         }
     }

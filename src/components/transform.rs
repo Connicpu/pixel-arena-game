@@ -16,7 +16,7 @@ pub struct Transform {
 impl Transform {
     pub fn matrix(&self) -> M {
         M::skew(self.skew.x, self.skew.y, self.sprite_center)
-            * M::rotation(self.rotation, self.sprite_center)
+            * M::rotation(-self.rotation, self.sprite_center)
             * M::scaling(self.scale, self.sprite_center)
             * M::translation(self.pos + self.offset + [0.0, self.altitude])
     }

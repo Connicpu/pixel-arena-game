@@ -218,4 +218,14 @@
    </object>
   </objectgroup>
  </tile>
+ <tile id="81">
+  <objectgroup draworder="index">
+   <object id="1" x="0" y="4">
+    <properties>
+     <property name="flags" value="PATH"/>
+    </properties>
+    <polygon points="0,0 4,0 4,-4 12,-4 12,0 16,0 16,8 12,8 12,12 4,12 4,9 0,9"/>
+   </object>
+  </objectgroup>
+ </tile>
 </tileset>

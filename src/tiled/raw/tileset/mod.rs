@@ -1,24 +1,46 @@
 use self::offset::TileOffset;
 use crate::tiled::raw::context::ParseContext;
 use crate::tiled::raw::image::Image;
-use crate::tiled::raw::TileId;
+use crate::tiled::raw::GlobalTileId;
 
 use std::sync::Arc;
 
-use failure::{err_msg, Fallible};
+use failure::Fallible;
 
 use xml::attribute as xa;
 
 pub mod offset;
 pub mod tile;
+pub mod animation;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct MapTileset {
-    pub firstgid: TileId,
+    pub firstgid: GlobalTileId,
+
+    #[serde(with = "tsxarcserde")]
     pub data: Arc<Tileset>,
 }
 
-#[derive(Debug)]
+impl MapTileset {
+    pub fn parse_tag(
+        context: &mut ParseContext,
+        attrs: &[xa::OwnedAttribute],
+    ) -> Fallible<MapTileset> {
+        parse_tag! {
+            context; attrs;
+            <tileset firstgid = "firstgid"(GlobalTileId) ?source = "source"(String)>
+        }
+
+        let data = match source {
+            Some(source) => Tileset::parse_file(context, &source)?,
+            None => Arc::new(Tileset::parse_tag(context, attrs)?),
+        };
+
+        Ok(MapTileset { firstgid, data })
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Tileset {
     pub name: String,
     pub tilewidth: i32,
@@ -28,29 +50,12 @@ pub struct Tileset {
     pub spacing: i32,
     pub margin: i32,
 
-    pub offset: Option<TileOffset>,
-    pub image: Image,
+    pub offset: TileOffset,
+    pub image: Option<Image>,
     pub tiles: Vec<tile::Tile>,
 }
 
 impl Tileset {
-    pub fn parse_map_tag(
-        context: &mut ParseContext,
-        attrs: &[xa::OwnedAttribute],
-    ) -> Fallible<MapTileset> {
-        parse_tag! {
-            context; attrs;
-            <tileset firstgid = "firstgid"(TileId) ?source = "source"(String)>
-        }
-
-        let data = match source {
-            Some(source) => Self::parse_file(context, &source)?,
-            None => Arc::new(Self::parse_tag(context, attrs)?),
-        };
-
-        Ok(MapTileset { firstgid, data })
-    }
-
     pub fn parse_file(context: &mut ParseContext, source: &str) -> Fallible<Arc<Tileset>> {
         let source = context.source.relative(source);
         if let Some(set) = context.tilesets.get(&source) {
@@ -89,11 +94,8 @@ impl Tileset {
         let spacing = spacing.unwrap_or(0);
         let margin = margin.unwrap_or(0);
 
-        let offset = tileoffset.first().cloned();
-        let image = image
-            .first()
-            .cloned()
-            .ok_or_else(|| err_msg("<image> must be specified in a tileset"))?;
+        let offset = tileoffset.first().cloned().unwrap_or_default();
+        let image = image.first().cloned();
         let tiles = tile;
 
         Ok(Tileset {
@@ -108,5 +110,24 @@ impl Tileset {
             image,
             tiles,
         })
+    }
+}
+
+pub mod tsxarcserde {
+    use crate::tiled::raw::tileset::Tileset;
+    use std::sync::Arc;
+
+    pub fn serialize<S>(tsx: &Arc<Tileset>, ser: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        <Tileset as serde::Serialize>::serialize(tsx, ser)
+    }
+
+    pub fn deserialize<'de, D>(de: D) -> Result<Arc<Tileset>, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        <Tileset as serde::Deserialize>::deserialize(de).map(Arc::new)
     }
 }

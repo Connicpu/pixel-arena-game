@@ -4,10 +4,10 @@ use failure::Fallible;
 
 use xml::attribute as xa;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
 pub struct TileOffset {
-    pub x: i32,
-    pub y: i32,
+    pub x: f32,
+    pub y: f32,
 }
 
 impl TileOffset {
@@ -17,7 +17,7 @@ impl TileOffset {
     ) -> Fallible<TileOffset> {
         parse_tag!{
             context; attrs;
-            <tileoffset x = "x"(i32) y = "y"(i32)/>
+            <tileoffset x = "x"(f32) y = "y"(f32)/>
         };
 
         Ok(TileOffset { x, y })

@@ -4,6 +4,8 @@
 extern crate conniecs_derive;
 #[macro_use]
 extern crate hex_literal;
+#[macro_use]
+extern crate serde_derive;
 
 pub use components::Components;
 pub use services::Services;
@@ -37,12 +39,11 @@ fn main() -> Result<(), failure::Error> {
             tilesets: &mut tilesets,
             warnings: &mut warnings,
             config: &config,
+            parseorder: 0,
         };
-        println!("{}", map_ctx.source);
         let tsx = "../../tilesets/placeholder/simple-grass.tsx";
-        println!("{}", map_ctx.source.relative(tsx));
         let tileset = tiled::raw::tileset::Tileset::parse_file(&mut map_ctx, tsx).unwrap();
-        println!("{:#?}", tileset);
+        println!("{}", serde_json::to_string(&*tileset).unwrap());
     }
 
     // Create core services
