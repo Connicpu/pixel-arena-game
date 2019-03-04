@@ -13,11 +13,9 @@ pub mod offset;
 pub mod tile;
 pub mod animation;
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug)]
 pub struct MapTileset {
     pub firstgid: GlobalTileId,
-
-    #[serde(with = "tsxarcserde")]
     pub data: Arc<Tileset>,
 }
 
@@ -32,7 +30,11 @@ impl MapTileset {
         }
 
         let data = match source {
-            Some(source) => Tileset::parse_file(context, &source)?,
+            Some(source) => {
+                parse_tag!(context; attrs; <tileset/>);
+                let ts = Tileset::parse_file(context, &source)?;
+                ts
+            }
             None => Arc::new(Tileset::parse_tag(context, attrs)?),
         };
 
@@ -40,7 +42,7 @@ impl MapTileset {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub struct Tileset {
     pub name: String,
     pub tilewidth: i32,
@@ -84,7 +86,7 @@ impl Tileset {
                 columns = "columns"(i32)
                 ?spacing = "spacing"(i32)
                 ?margin = "margin"(i32)
-            >
+                >
                 <tileoffset> => TileOffset::parse_tag,
                 <image> => Image::parse_tag,
                 <tile> => tile::Tile::parse_tag,
@@ -110,24 +112,5 @@ impl Tileset {
             image,
             tiles,
         })
-    }
-}
-
-pub mod tsxarcserde {
-    use crate::tiled::raw::tileset::Tileset;
-    use std::sync::Arc;
-
-    pub fn serialize<S>(tsx: &Arc<Tileset>, ser: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        <Tileset as serde::Serialize>::serialize(tsx, ser)
-    }
-
-    pub fn deserialize<'de, D>(de: D) -> Result<Arc<Tileset>, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        <Tileset as serde::Deserialize>::deserialize(de).map(Arc::new)
     }
 }

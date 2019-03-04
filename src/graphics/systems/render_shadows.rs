@@ -1,5 +1,5 @@
 use crate::graphics::shaders::shadow::ShadowInstance;
-use crate::{DataHelper, EntityIter};
+use crate::{Data, EntityIter};
 
 use glium::index::{NoIndices, PrimitiveType};
 use glium::vertex::VertexBuffer;
@@ -16,7 +16,7 @@ pub struct RenderShadows {
     buffer: Option<VertexBuffer<ShadowInstance>>,
 }
 
-fn process(r: &mut RenderShadows, entities: EntityIter, data: &mut DataHelper) {
+fn process(r: &mut RenderShadows, entities: EntityIter, data: &mut Data) {
     for entity in entities {
         let shadow = &data.components.shadow[entity];
         let t = &data.components.transform[entity];

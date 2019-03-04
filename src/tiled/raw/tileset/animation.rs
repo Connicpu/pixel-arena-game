@@ -4,7 +4,7 @@ use crate::tiled::raw::LocalTileId;
 use failure::Fallible;
 use xml::attribute as xa;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub struct Animation {
     pub frames: Vec<Frame>,
 }
@@ -25,29 +25,7 @@ impl Animation {
     }
 }
 
-pub mod anmoptarcserde {
-    use crate::tiled::raw::tileset::animation::Animation;
-    use std::sync::Arc;
-
-    pub fn serialize<S>(img: &Option<Arc<Animation>>, ser: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        match img {
-            Some(img) => <Option<&Animation> as serde::Serialize>::serialize(&Some(&**img), ser),
-            None => <Option<Animation> as serde::Serialize>::serialize(&None, ser)
-        }
-    }
-
-    pub fn deserialize<'de, D>(de: D) -> Result<Option<Arc<Animation>>, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        <Option<Animation> as serde::Deserialize>::deserialize(de).map(|o| o.map(Arc::new))
-    }
-}
-
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug)]
 pub struct Frame {
     pub tileid: LocalTileId,
     pub duration: std::time::Duration,

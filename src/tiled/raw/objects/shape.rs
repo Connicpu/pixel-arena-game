@@ -3,7 +3,7 @@ use crate::tiled::raw::context::ParseContext;
 use failure::Fallible;
 use xml::attribute as xa;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub enum Shape {
     Rectangle,
     Ellipse,

@@ -6,6 +6,7 @@ use crate::tiled::raw::properties::Properties;
 use failure::Fallible;
 use xml::attribute as xa;
 
+#[derive(Debug)]
 pub struct TileLayer {
     pub parse_order: ParseOrder,
     pub id: i32,

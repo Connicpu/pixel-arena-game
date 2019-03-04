@@ -1,4 +1,4 @@
-use crate::DataHelper;
+use crate::Data;
 
 use failure::ResultExt;
 
@@ -6,10 +6,11 @@ use failure::ResultExt;
 #[process]
 pub struct BeginDraw;
 
-fn process(_: &mut BeginDraw, data: &mut DataHelper) {
+fn process(_: &mut BeginDraw, data: &mut Data) {
     let graphics = &mut data.services.graphics;
 
-    graphics.camera.upload(&graphics.core);
+    graphics.camera.update_aspect(&graphics.core);
+    graphics.camera.upload();
 
     graphics
         .frame

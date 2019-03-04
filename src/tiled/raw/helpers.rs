@@ -28,10 +28,13 @@ macro_rules! parse_tag {
                 XmlEvent::StartDocument { .. } => continue,
 
                 XmlEvent::Whitespace(_) => (),
-                $(
-                    XmlEvent::Characters(c) => $content.push_str(&c),
-                    XmlEvent::CData(c) => $content.push_str(&c),
-                )?
+                
+                XmlEvent::Characters(_c) => {
+                    $($content.push_str(&_c);)?
+                }
+                XmlEvent::CData(_c) => {
+                    $($content.push_str(&_c);)?
+                }
                 XmlEvent::StartElement { ref name, ref attributes, .. } => {
                     match name.local_name.as_str() {
                         $(

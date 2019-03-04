@@ -3,7 +3,7 @@ use crate::tiled::raw::context::ParseContext;
 use failure::Fallible;
 use xml::attribute as xa;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub struct Text {
     pub content: String,
     pub fontfamily: Option<String>,
@@ -79,7 +79,7 @@ impl Text {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum HAlign {
     Left,
     Center,
@@ -87,7 +87,7 @@ pub enum HAlign {
     Justified,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum VAlign {
     Top,
     Center,

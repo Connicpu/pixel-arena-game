@@ -1,7 +1,7 @@
 use crate::graphics::core::GraphicsCore;
 
-use glium::uniforms::UniformBuffer;
 use glium::implement_uniform_block;
+use glium::uniforms::UniformBuffer;
 use math2d::Vector2f;
 
 use failure::ResultExt;
@@ -17,6 +17,7 @@ pub struct Camera {
 
     pub near_z: f32,
     pub far_z: f32,
+    pub aspect_ratio: f32,
 }
 
 #[repr(C)]
@@ -41,6 +42,7 @@ impl Camera {
 
             near_z: 100.0,
             far_z: -100.0,
+            aspect_ratio: 1.0,
         };
 
         Ok(camera)
@@ -50,28 +52,42 @@ impl Camera {
         &self.buffer
     }
 
-    pub fn upload(&self, core: &GraphicsCore) {
+    pub fn update_aspect(&mut self, core: &GraphicsCore) {
+        let size = core.window().get_inner_size().unwrap();
+        self.aspect_ratio = (size.width / size.height) as f32;
+    }
+
+    pub fn upload(&self) {
         let m = self.calc_view_mat();
-        let cambuf = self.make_cambuf(&m, core);
+        let cambuf = self.make_cambuf(&m);
         self.buffer.write(&cambuf);
     }
 
     fn calc_view_mat(&self) -> math2d::Matrix3x2f {
-        use math2d::Matrix3x2f;
-        let scale = [self.height / 2.0, self.height / 2.0];
-
-        let mat = Matrix3x2f::translation(self.position + self.offset)
-            * Matrix3x2f::scaling(scale, (0.0, 0.0))
-            * Matrix3x2f::skew(self.skew.x, self.skew.y, (0.0, 0.0))
-            * Matrix3x2f::rotation(-self.rotation, (0.0, 0.0));
-
+        let mat = self.inverse_view_mat();
         mat.unchecked_inverse(mat.determinant())
     }
 
-    fn make_cambuf(&self, m: &math2d::Matrix3x2f, core: &GraphicsCore) -> CamBuf {
-        let window_size = core.window().get_inner_size().unwrap();
-        let p = (window_size.height / window_size.width) as f32;
+    fn inverse_view_mat(&self) -> math2d::Matrix3x2f {
+        use math2d::Matrix3x2f;
+        let scale = [self.aspect_ratio * self.height / 2.0, self.height / 2.0];
 
+        let mat = Matrix3x2f::scaling(scale, (0.0, 0.0))
+            * Matrix3x2f::skew(self.skew.x, self.skew.y, (0.0, 0.0))
+            * Matrix3x2f::rotation(-self.rotation, (0.0, 0.0))
+            * Matrix3x2f::translation(self.position + self.offset);
+
+        mat
+    }
+
+    pub fn world_viewport(&self) -> math2d::Rectf {
+        let mat = self.inverse_view_mat();
+        let tl = mat.transform_point((-1.0, 1.0));
+        let br = mat.transform_point((1.0, -1.0));
+        (tl, br).into()
+    }
+
+    fn make_cambuf(&self, m: &math2d::Matrix3x2f) -> CamBuf {
         // Z-scale
         let zsc = -2.0 / (self.far_z - self.near_z);
         // Z-base
@@ -80,10 +96,10 @@ impl Camera {
         // This has to be in transpose form for some reason?
         let cambuf = CamBuf {
             u_camera: [
-                [m.a * p, m.b, 0.0, 0.0],
-                [m.c * p, m.d, 0.0, 0.0],
-                [0.0 * p, 0.0, zsc, 0.0],
-                [m.x * p, m.y, zbs, 1.0],
+                [m.a, m.b, 0.0, 0.0],
+                [m.c, m.d, 0.0, 0.0],
+                [0.0, 0.0, zsc, 0.0],
+                [m.x, m.y, zbs, 1.0],
             ],
         };
 

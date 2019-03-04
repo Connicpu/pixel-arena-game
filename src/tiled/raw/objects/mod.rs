@@ -13,7 +13,7 @@ use xml::attribute as xa;
 pub mod shape;
 pub mod text;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub struct ObjectGroup {
     pub parse_order: ParseOrder,
     pub id: Option<i32>,
@@ -92,29 +92,7 @@ impl ObjectGroup {
     }
 }
 
-pub mod objgrpoptarcserde {
-    use crate::tiled::raw::objects::ObjectGroup;
-    use std::sync::Arc;
-
-    pub fn serialize<S>(img: &Option<Arc<ObjectGroup>>, ser: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        match img {
-            Some(img) => <Option<&ObjectGroup> as serde::Serialize>::serialize(&Some(&**img), ser),
-            None => <Option<ObjectGroup> as serde::Serialize>::serialize(&None, ser)
-        }
-    }
-
-    pub fn deserialize<'de, D>(de: D) -> Result<Option<Arc<ObjectGroup>>, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        <Option<ObjectGroup> as serde::Deserialize>::deserialize(de).map(|o| o.map(Arc::new))
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub struct Object {
     pub parse_order: ParseOrder,
     pub id: i32,

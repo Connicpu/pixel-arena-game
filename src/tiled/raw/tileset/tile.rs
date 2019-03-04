@@ -9,21 +9,15 @@ use std::sync::Arc;
 use failure::Fallible;
 use xml::attribute as xa;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub struct Tile {
     pub id: LocalTileId,
     pub tiletype: Option<String>,
     pub terrain: Option<String>,
     pub probability: Option<f32>,
     pub properties: Properties,
-
-    #[serde(with = "crate::tiled::raw::image::imgoptarcserde")]
     pub image: Option<Arc<Image>>,
-
-    #[serde(with = "crate::tiled::raw::objects::objgrpoptarcserde")]
     pub objects: Option<Arc<ObjectGroup>>,
-
-    #[serde(with = "crate::tiled::raw::tileset::animation::anmoptarcserde")]
     pub animation: Option<Arc<Animation>>,
 }
 

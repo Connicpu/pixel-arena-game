@@ -1,4 +1,4 @@
-#![feature(manually_drop_take)]
+#![feature(manually_drop_take, range_contains, euclidean_division)]
 
 #[macro_use]
 extern crate conniecs_derive;
@@ -6,6 +6,8 @@ extern crate conniecs_derive;
 extern crate hex_literal;
 #[macro_use]
 extern crate serde_derive;
+
+use failure::Fallible;
 
 pub use components::Components;
 pub use services::Services;
@@ -24,36 +26,21 @@ mod helpers;
 type World = conniecs::World<Systems>;
 type Comps<T> = conniecs::ComponentList<Components, T>;
 type EntityIter<'a> = conniecs::EntityIter<'a, Components>;
-type DataHelper = conniecs::DataHelper<Components, Services>;
+type Data = conniecs::DataHelper<Components, Services>;
 //type EntityData<'a> = conniecs::EntityData<'a, components::Components>;
 
-fn main() -> Result<(), failure::Error> {
-    {
-        use crate::tiled::raw::context::{ParseContext, Source};
-        let mut tilesets = Default::default();
-        let mut warnings = vec![];
-        let config = Default::default();
-        let mut map_ctx = ParseContext {
-            reader: xml::EventReader::from_str(""),
-            source: Source::new_file("assets/maps/placeholder/simple-grass-test.tmx"),
-            tilesets: &mut tilesets,
-            warnings: &mut warnings,
-            config: &config,
-            parseorder: 0,
-        };
-        let tsx = "../../tilesets/placeholder/simple-grass.tsx";
-        let tileset = tiled::raw::tileset::Tileset::parse_file(&mut map_ctx, tsx).unwrap();
-        println!("{}", serde_json::to_string(&*tileset).unwrap());
-    }
-
+fn main() -> Fallible<()> {
     // Create core services
     let services = Services {
         graphics: graphics::GraphicsState::new()?,
         quit_flag: false,
+        jump: false,
+        time: services::time::Time::new(),
     };
 
     let mut world: World = conniecs::World::with_services(services);
 
+    // Create some test entities
     for y in -3..=3 {
         for x in -5..=5 {
             use components::Transform;

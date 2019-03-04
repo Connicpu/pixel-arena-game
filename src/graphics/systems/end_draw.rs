@@ -1,4 +1,4 @@
-use crate::DataHelper;
+use crate::Data;
 
 use failure::ResultExt;
 
@@ -6,7 +6,7 @@ use failure::ResultExt;
 #[process]
 pub struct EndDraw;
 
-fn process(_: &mut EndDraw, data: &mut DataHelper) {
+fn process(_: &mut EndDraw, data: &mut Data) {
     data.services
         .graphics
         .frame

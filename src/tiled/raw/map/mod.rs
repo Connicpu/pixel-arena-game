@@ -1,3 +1,4 @@
+use crate::tiled::raw::properties::Properties;
 use crate::tiled::raw::context::ParseContext;
 use crate::tiled::raw::layer::Layer;
 use crate::tiled::raw::tileset::MapTileset;
@@ -6,6 +7,7 @@ use crate::tiled::raw::RenderOrder;
 use failure::Fallible;
 use xml::attribute as xa;
 
+#[derive(Debug)]
 pub struct Map {
     pub version: String,
     pub tiledversion: String,
@@ -21,6 +23,7 @@ pub struct Map {
     pub staggerindex: Option<i32>,
     pub backgroundcolor: Option<math2d::Color>,
 
+    pub properties: Properties,
     pub tilesets: Vec<MapTileset>,
     pub layers: Vec<Layer>,
 }
@@ -42,10 +45,12 @@ impl Map {
                 ?staggerindex="staggerindex"(i32)
                 ?backgroundcolor="backgroundcolor"(String)>
 
+                <properties> => Properties::parse_tag,
                 <tileset> => MapTileset::parse_tag,
                 <layer> => Layer::parse_tile,
                 <objectgroup> => Layer::parse_obj,
                 <imagelayer> => Layer::parse_img,
+                <group> => Layer::parse_grp,
             </map>
         }
 
@@ -83,8 +88,9 @@ impl Map {
         let backgroundcolor = backgroundcolor
             .map(|s| Color::from_str_argb(&s))
             .transpose()?;
+        let properties = properties.pop().unwrap_or_default();
         let tilesets = tileset;
-        let layers = Layer::combine(&mut [layer, objectgroup, imagelayer]);
+        let layers = Layer::combine(&mut [layer, objectgroup, imagelayer, group]);
 
         Ok(Map {
             version,
@@ -100,12 +106,14 @@ impl Map {
             staggeraxis,
             staggerindex,
             backgroundcolor,
+            properties,
             tilesets,
             layers,
         })
     }
 }
 
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Orientation {
     Orthogonal,
     Isometric,
@@ -113,6 +121,7 @@ pub enum Orientation {
     Hexagonal,
 }
 
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Axis {
     X,
     Y,

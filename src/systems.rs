@@ -1,7 +1,10 @@
 use crate::graphics::systems as graphics;
+use crate::services;
 
 #[derive(SystemManager)]
 pub struct Systems {
+    update_time: services::time::UpdateTime,
+
     begin_draw: graphics::BeginDraw,
     render_sprites: graphics::RenderSprites,
     render_shadows: graphics::RenderShadows,

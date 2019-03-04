@@ -4,7 +4,7 @@ use crate::tiled::raw::GlobalTileId;
 use failure::Fallible;
 use xml::attribute as xa;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub enum Data {
     Plain(Vec<GlobalTileId>),
     Chunked(Vec<Chunk>),
@@ -44,7 +44,7 @@ impl Data {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub struct Chunk {
     pub x: i32,
     pub y: i32,

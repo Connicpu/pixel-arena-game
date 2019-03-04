@@ -1,13 +1,13 @@
 use crate::tiled::raw::context::ParseContext;
 use crate::tiled::raw::context::ParseOrder;
-use crate::tiled::raw::image::Image;
+use crate::tiled::raw::layer::Layer;
 use crate::tiled::raw::properties::Properties;
 
 use failure::Fallible;
 use xml::attribute as xa;
 
 #[derive(Debug)]
-pub struct ImageLayer {
+pub struct GroupLayer {
     pub parse_order: ParseOrder,
     pub id: i32,
     pub name: String,
@@ -16,23 +16,27 @@ pub struct ImageLayer {
     pub opacity: f32,
     pub visible: bool,
     pub properties: Properties,
-    pub image: Image,
+    pub layers: Vec<Layer>,
 }
 
-impl ImageLayer {
+impl GroupLayer {
     pub fn parse_tag(
         context: &mut ParseContext,
         attrs: &[xa::OwnedAttribute],
-    ) -> Fallible<ImageLayer> {
+    ) -> Fallible<GroupLayer> {
         let parse_order = context.parseorder();
         parse_tag! {
             context; attrs;
-            <imagelayer
-                    id="id"(i32) name="name"(String)
-                    ?offsetx="offsetx"(f32) ?offsety="offsety"(f32)
-                    ?opacity="opacity"(f32) ?visible="visible"(i32)>
+            <group
+                id="id"(i32) name="name"(String)
+                ?offsetx="offsetx"(f32) ?offsety="offsety"(f32)
+                ?opacity="opacity"(f32) ?visible="visible"(i32)>
+
                 <properties> => Properties::parse_tag,
-                <image> => Image::parse_tag,
+                <layer> => Layer::parse_tile,
+                <objectgroup> => Layer::parse_obj,
+                <imagelayer> => Layer::parse_img,
+                <group> => Layer::parse_grp,
             </imagelayer>
         }
 
@@ -41,11 +45,9 @@ impl ImageLayer {
         let opacity = opacity.unwrap_or(1.0);
         let visible = visible.map(|i| i != 0).unwrap_or(true);
         let properties = properties.pop().unwrap_or_default();
-        let image = image
-            .pop()
-            .ok_or_else(|| failure::err_msg("<imagelayer> is missing <image> tag"))?;
+        let layers = Layer::combine(&mut [layer, objectgroup, imagelayer, group]);
 
-        Ok(ImageLayer {
+        Ok(GroupLayer {
             parse_order,
             id,
             name,
@@ -54,7 +56,7 @@ impl ImageLayer {
             opacity,
             visible,
             properties,
-            image,
+            layers,
         })
     }
 }

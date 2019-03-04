@@ -16,7 +16,63 @@ pub struct ParseContext<'a> {
     pub parseorder: i32,
 }
 
+pub struct ParseResult<T> {
+    pub data: T,
+    pub tilesets: HashMap<Source, Arc<Tileset>>,
+    pub warnings: Vec<String>,
+}
+
 impl<'a> ParseContext<'a> {
+    pub fn parse<R>(
+        source: Source,
+        root_tag: &str,
+        func: impl FnOnce(&mut ParseContext, &[xa::OwnedAttribute]) -> Fallible<R>,
+    ) -> Fallible<ParseResult<R>> {
+        let data = source.read_all()?;
+        let mut tilesets = HashMap::new();
+        let mut warnings = Vec::new();
+        let mut config = xml::ParserConfig::default();
+        config.whitespace_to_characters = true;
+        config.cdata_to_characters = true;
+
+        let data = {
+            let mut ctx = ParseContext {
+                reader: xml::EventReader::new(&data),
+                source: source,
+                tilesets: &mut tilesets,
+                warnings: &mut warnings,
+                config: &config,
+                parseorder: 0,
+            };
+            ctx.parse_root(root_tag, func)?
+        };
+
+        Ok(ParseResult {
+            data,
+            tilesets,
+            warnings,
+        })
+    }
+
+    pub fn parse_root<R>(
+        &mut self,
+        root_tag: &str,
+        func: impl FnOnce(&mut ParseContext, &[xa::OwnedAttribute]) -> Fallible<R>,
+    ) -> Fallible<R> {
+        loop {
+            use xml::reader::XmlEvent;
+            match self.reader.next()? {
+                XmlEvent::StartDocument { .. } => continue,
+                XmlEvent::StartElement {
+                    ref name,
+                    ref attributes,
+                    ..
+                } if name.local_name == root_tag => return func(self, attributes),
+                _ => return Err(err_msg(format!("bad tiled file {}", self.source))),
+            };
+        }
+    }
+
     pub fn subcontext<R>(
         &mut self,
         data: &[u8],
@@ -33,18 +89,7 @@ impl<'a> ParseContext<'a> {
             parseorder: 0,
         };
 
-        loop {
-            use xml::reader::XmlEvent;
-            match ctx.reader.next()? {
-                XmlEvent::StartDocument { .. } => continue,
-                XmlEvent::StartElement {
-                    ref name,
-                    ref attributes,
-                    ..
-                } if name.local_name == root_tag => return func(&mut ctx, attributes),
-                _ => return Err(err_msg(format!("bad tileset file {}", ctx.source))),
-            };
-        }
+        ctx.parse_root(root_tag, func)
     }
 
     pub fn warning(&mut self, msg: impl Into<String>) {
@@ -57,10 +102,10 @@ impl<'a> ParseContext<'a> {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ParseOrder(i32);
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum Source {
     File(PathBuf),
 }

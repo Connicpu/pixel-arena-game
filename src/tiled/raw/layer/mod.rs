@@ -1,5 +1,6 @@
 use crate::tiled::raw::context::ParseContext;
 use crate::tiled::raw::context::ParseOrder;
+use crate::tiled::raw::layer::group::GroupLayer;
 use crate::tiled::raw::layer::image::ImageLayer;
 use crate::tiled::raw::layer::tile::TileLayer;
 use crate::tiled::raw::objects::ObjectGroup;
@@ -7,13 +8,16 @@ use crate::tiled::raw::objects::ObjectGroup;
 use failure::Fallible;
 use xml::attribute as xa;
 
+pub mod group;
 pub mod image;
 pub mod tile;
 
+#[derive(Debug)]
 pub enum Layer {
     Tile(TileLayer),
     Object(ObjectGroup),
     Image(ImageLayer),
+    Group(GroupLayer),
 }
 
 impl Layer {
@@ -22,6 +26,7 @@ impl Layer {
             Layer::Tile(layer) => layer.parse_order,
             Layer::Object(layer) => layer.parse_order,
             Layer::Image(layer) => layer.parse_order,
+            Layer::Group(layer) => layer.parse_order,
         }
     }
 
@@ -45,5 +50,9 @@ impl Layer {
 
     pub fn parse_img(context: &mut ParseContext, attrs: &[xa::OwnedAttribute]) -> Fallible<Layer> {
         ImageLayer::parse_tag(context, attrs).map(Layer::Image)
+    }
+
+    pub fn parse_grp(context: &mut ParseContext, attrs: &[xa::OwnedAttribute]) -> Fallible<Layer> {
+        GroupLayer::parse_tag(context, attrs).map(Layer::Group)
     }
 }

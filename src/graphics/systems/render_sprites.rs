@@ -1,6 +1,6 @@
 use crate::graphics::shaders::simple_quad::QuadInstance;
 use crate::graphics::textures::{SubtextureId, TextureId};
-use crate::{DataHelper, EntityIter};
+use crate::{Data, EntityIter};
 
 use std::collections::HashMap;
 
@@ -19,7 +19,7 @@ pub struct RenderSprites {
     collect: HashMap<TextureId, Vec<QuadInstance>>,
 }
 
-fn process(r: &mut RenderSprites, entities: EntityIter, data: &mut DataHelper) {
+fn process(r: &mut RenderSprites, entities: EntityIter, data: &mut Data) {
     let graphics = &mut data.services.graphics;
     let def_tex = graphics.textures.get(Default::default()).unwrap();
     let def_tid = TextureId::default();
@@ -27,12 +27,19 @@ fn process(r: &mut RenderSprites, entities: EntityIter, data: &mut DataHelper) {
 
     let mut max_instances = 0;
     let mut num_draws = 0;
+    let dt = data.services.time.delta;
 
     for entity in entities {
         let transform = &mut data.components.transform[entity];
         let sprite = &data.components.sprite[entity];
 
-        transform.rotation += 0.05;
+        // TEST CODE
+        if data.services.jump {
+            transform.altitude = (transform.altitude + dt).max(0.0);
+        } else {
+            transform.altitude = (transform.altitude - dt).max(0.0);
+        }
+        // TEST CODE
 
         let tid = sprite.texture;
 
@@ -93,7 +100,7 @@ fn process(r: &mut RenderSprites, entities: EntityIter, data: &mut DataHelper) {
         instance_buffer.slice_mut(..list.len()).unwrap().write(list);
 
         let ibuf = instance_buffer.slice(..list.len()).unwrap();
-        let buffers = (&shader.verts, ibuf.per_instance().unwrap());
+        let buffers = (&graphics.core.quad, ibuf.per_instance().unwrap());
 
         let camera = graphics.camera.buffer();
 

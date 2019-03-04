@@ -6,7 +6,7 @@ use failure::err_msg;
 use failure::Fallible;
 use xml::attribute as xa;
 
-#[derive(Clone, Default, Serialize, Deserialize)]
+#[derive(Clone, Default)]
 pub struct Properties {
     pub properties: HashMap<String, Property>,
 }
@@ -27,6 +27,10 @@ impl Properties {
 
         Ok(Properties { properties })
     }
+
+    pub fn empty(&self) -> bool {
+        self.properties.is_empty()
+    }
 }
 
 impl std::fmt::Debug for Properties {
@@ -35,7 +39,7 @@ impl std::fmt::Debug for Properties {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone)]
 pub enum Property {
     String(String),
     Int(i64),

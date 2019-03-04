@@ -4,7 +4,7 @@ use failure::Fallible;
 
 use xml::attribute as xa;
 
-#[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Default)]
 pub struct TileOffset {
     pub x: f32,
     pub y: f32,

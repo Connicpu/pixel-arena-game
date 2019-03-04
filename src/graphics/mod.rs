@@ -1,5 +1,6 @@
 use failure::ResultExt;
 
+pub mod cache;
 pub mod camera;
 pub mod core;
 pub mod frame;

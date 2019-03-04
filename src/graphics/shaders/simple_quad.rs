@@ -21,7 +21,6 @@ use failure::Error;
 
 pub struct SimpleQuadShader {
     pub program: glium::Program,
-    pub verts: glium::VertexBuffer<QuadVertex>,
 }
 
 static VERT_SHADER: &str = include_str!("simple_quad/simple_quad.vert");
@@ -29,9 +28,8 @@ static FRAG_SHADER: &str = include_str!("simple_quad/simple_quad.frag");
 
 pub fn load(core: &GraphicsCore) -> Result<SimpleQuadShader, Error> {
     let program = glium::Program::from_source(&core.display, VERT_SHADER, FRAG_SHADER, None)?;
-    let verts = glium::VertexBuffer::immutable(&core.display, &QUADS)?;
 
-    Ok(SimpleQuadShader { program, verts })
+    Ok(SimpleQuadShader { program })
 }
 
 #[repr(C)]
@@ -54,28 +52,3 @@ glium::implement_vertex!(
     i_layer,
     i_imagelayer
 );
-
-#[repr(C)]
-#[derive(Copy, Clone)]
-pub struct QuadVertex {
-    a_pos: [f32; 2],
-    a_uv: [f32; 2],
-}
-
-glium::implement_vertex!(QuadVertex, a_pos, a_uv);
-
-const fn qvert(x: f32, y: f32, u: f32, v: f32) -> QuadVertex {
-    QuadVertex {
-        a_pos: [x, y],
-        a_uv: [u, v],
-    }
-}
-
-static QUADS: [QuadVertex; 6] = [
-    qvert(-0.5, 0.5, 0.0, 0.0),
-    qvert(0.5, 0.5, 1.0, 0.0),
-    qvert(0.5, -0.5, 1.0, 1.0),
-    qvert(-0.5, 0.5, 0.0, 0.0),
-    qvert(0.5, -0.5, 1.0, 1.0),
-    qvert(-0.5, -0.5, 0.0, 1.0),
-];
