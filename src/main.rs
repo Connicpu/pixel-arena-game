@@ -1,4 +1,4 @@
-#![feature(manually_drop_take, range_contains, euclidean_division)]
+#![feature(manually_drop_take, range_contains, euclidean_division, core_intrinsics)]
 
 #[macro_use]
 extern crate conniecs_derive;
@@ -15,7 +15,6 @@ pub use systems::Systems;
 
 pub mod assets;
 pub mod components;
-pub mod entities;
 pub mod graphics;
 pub mod services;
 pub mod systems;
@@ -30,6 +29,14 @@ type Data = conniecs::DataHelper<Components, Services>;
 //type EntityData<'a> = conniecs::EntityData<'a, components::Components>;
 
 fn main() -> Fallible<()> {
+    {
+        use crate::tiled::source::Source;
+        let map = tiled::load_tmx(Source::new_file("assets/maps/placeholder/simple-grass-test.tmx"))?;
+        let mut data = Vec::with_capacity(4096);
+        tiled::save_binmap(&mut data, &map)?;
+        println!("compressed size {}kb", data.len() as f64 / 1024.0);
+    }
+
     // Create core services
     let services = Services {
         graphics: graphics::GraphicsState::new()?,

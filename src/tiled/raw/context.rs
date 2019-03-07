@@ -1,7 +1,7 @@
 use crate::tiled::raw::tileset::Tileset;
+use crate::tiled::source::Source;
 
 use std::collections::HashMap;
-use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use failure::{err_msg, Fallible};
@@ -104,36 +104,3 @@ impl<'a> ParseContext<'a> {
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ParseOrder(i32);
-
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub enum Source {
-    File(PathBuf),
-}
-
-impl Source {
-    pub fn new_file(file: impl AsRef<Path>) -> Source {
-        Source::File(dunce::canonicalize(file).unwrap())
-    }
-
-    pub fn relative(&self, rel: &str) -> Source {
-        match self {
-            Source::File(file) => {
-                Source::File(dunce::canonicalize(file.parent().unwrap().join(rel)).unwrap())
-            }
-        }
-    }
-
-    pub fn read_all(&self) -> Fallible<Vec<u8>> {
-        match self {
-            Source::File(path) => Ok(std::fs::read(path)?),
-        }
-    }
-}
-
-impl std::fmt::Display for Source {
-    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self {
-            Source::File(path) => std::fmt::Display::fmt(&path.to_string_lossy(), fmt),
-        }
-    }
-}

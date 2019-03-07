@@ -1,4 +1,5 @@
 use crate::graphics::core::GraphicsCore;
+use crate::tiled::raw;
 
 use failure::{Fallible, ResultExt};
 use glium::texture::{RawImage2d, SrgbTexture2d};
@@ -15,6 +16,15 @@ pub struct Image {
 }
 
 impl Image {
+    pub fn from_raw(raw: Option<&raw::Image>) -> Fallible<Self> {
+        let raw = raw.ok_or_else(|| failure::err_msg("Tileset is missing image tag"))?;
+        let data = raw.source.read_all().context("Reading image file")?;
+        let decoded = ::image::load_from_memory(&data).context("Decoding image data")?;
+        let image = Self::from_image(decoded.to_rgba()).context("Formatting image")?;
+
+        Ok(image)
+    }
+
     pub(super) fn initialize(&mut self, core: &GraphicsCore) -> Fallible<()> {
         let raw_data = self.decode_raw_image().context("Decoding tileset image")?;
 

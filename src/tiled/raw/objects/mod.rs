@@ -1,6 +1,6 @@
+use crate::tiled::source::Source;
 use crate::tiled::raw::context::ParseContext;
 use crate::tiled::raw::context::ParseOrder;
-use crate::tiled::raw::context::Source;
 use crate::tiled::raw::objects::shape::Shape;
 use crate::tiled::raw::objects::text::Text;
 use crate::tiled::raw::properties::Properties;

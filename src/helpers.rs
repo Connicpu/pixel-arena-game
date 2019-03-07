@@ -15,3 +15,10 @@ where
     }
 }
 
+pub fn likely(b: bool) -> bool {
+    unsafe { std::intrinsics::likely(b) }
+}
+
+// pub fn unlikely(b: bool) -> bool {
+//     unsafe { std::intrinsics::unlikely(b) }
+// }

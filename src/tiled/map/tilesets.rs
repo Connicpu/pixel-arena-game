@@ -1,26 +1,61 @@
-use crate::tiled::map::LocalTileId;
-use crate::tiled::map::TileId;
-use crate::tiled::map::TilesetId;
+use crate::tiled::map::{LocalTileId, TileId, TilesetId};
+use crate::tiled::raw;
 use crate::tiled::tileset::Tileset;
 
 use std::ops::Range;
 
+use failure::{err_msg, Fallible};
+use math2d::Vector2f;
+
 #[derive(Serialize, Deserialize)]
 pub struct Tilesets {
-    tilesets: Vec<Tileset>,
-    ranges: Vec<Range<u32>>,
+    tilesets: Vec<(Range<u32>, Tileset)>,
 }
 
 impl Tilesets {
-    pub fn get_tile(&self, gid: u32) -> TileId {
-        for (i, range) in self.ranges.iter().enumerate() {
-            if range.contains(&gid) {
-                let tileset = TilesetId(i as u16 + 1);
-                let tile = LocalTileId((gid - range.start) as u16);
-                return TileId::new(tileset, tile);
+    pub fn from_raw(raw: &[raw::MapTileset], tile_size: Vector2f) -> Fallible<Tilesets> {
+        let mut tilesets = Vec::with_capacity(raw.len());
+        for raw in raw {
+            let tileset = Tileset::from_raw(&raw.data, tile_size)?;
+            let fgid = raw.firstgid.0;
+            let range = fgid..fgid + tileset.tiles.len() as u32;
+
+            tilesets.push((range, tileset));
+        }
+
+        let tilesets = Tilesets { tilesets };
+        tilesets.validate()?;
+        Ok(tilesets)
+    }
+
+    pub fn validate(&self) -> Fallible<()> {
+        for tileset in &self.tilesets {
+            tileset.1.validate()?;
+        }
+
+        let mut prev = 0..0u32;
+        for (range, tileset) in self.tilesets.iter() {
+            if range.start < prev.end {
+                return Err(err_msg("Tile ranges overlap"));
             }
+            if range.len() != tileset.tiles.len() {
+                return Err(err_msg("Range is inconsistent with the number of tiles"));
+            }
+            prev = range.clone();
+        }
+
+        Ok(())
+    }
+
+    pub fn get_tile(&self, gid: raw::GlobalTileId) -> TileId {
+        let gid = gid.0;
+        for (i, (range, _)) in self.tilesets.iter().enumerate() {
             if gid < range.start {
                 break;
+            } else if gid < range.end {
+                let tileset = TilesetId((i + 1) as u16);
+                let tile = LocalTileId((gid - range.start) as u16);
+                return TileId::new(tileset, tile);
             }
         }
         TileId::default()
@@ -28,9 +63,9 @@ impl Tilesets {
 
     pub fn by_id(&self, id: TilesetId) -> Option<&Tileset> {
         let id = id.0 as usize;
-        if id == 0 || id > self.tilesets.len() {
+        if id == 0 {
             return None;
         }
-        None
+        self.tilesets.get(id - 1).map(|(_, tileset)| tileset)
     }
 }

@@ -6,7 +6,7 @@ use xml::attribute as xa;
 
 #[derive(Debug)]
 pub enum Data {
-    Plain(Vec<GlobalTileId>),
+    Plain(Vec<Vec<GlobalTileId>>),
     Chunked(Vec<Chunk>),
 }
 
@@ -35,8 +35,7 @@ impl Data {
             let data: Fallible<_> = content
                 .split_whitespace()
                 .filter(|s| !s.is_empty())
-                .flat_map(|s| s.split(','))
-                .map(|s| Ok(GlobalTileId(s.parse()?)))
+                .map(|s| s.split(',').map(|s| Ok(GlobalTileId(s.trim().parse()?))).collect())
                 .collect();
 
             Ok(Data::Plain(data?))
@@ -48,8 +47,8 @@ impl Data {
 pub struct Chunk {
     pub x: i32,
     pub y: i32,
-    pub width: u32,
-    pub height: u32,
+    pub width: i32,
+    pub height: i32,
     pub data: Vec<GlobalTileId>,
 }
 
@@ -62,7 +61,7 @@ impl Chunk {
     ) -> Fallible<Chunk> {
         parse_tag! {
             context; attrs;
-            <chunk x="x"(i32) y="y"(i32) width="width"(u32) height="height"(u32)>
+            <chunk x="x"(i32) y="y"(i32) width="width"(i32) height="height"(i32)>
                 content,
             </chunk>
         }
@@ -89,7 +88,7 @@ impl Chunk {
                     let mut data = Vec::new();
                     decoder.read_to_end(&mut data)?;
                     data
-                },
+                }
 
                 Some(fmt) => {
                     return Err(failure::err_msg(format!(

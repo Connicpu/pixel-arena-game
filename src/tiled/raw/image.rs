@@ -1,5 +1,5 @@
+use crate::tiled::source::Source;
 use crate::tiled::raw::context::ParseContext;
-use crate::tiled::raw::context::Source;
 
 use failure::{err_msg, Fallible};
 use xml::attribute as xa;

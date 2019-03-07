@@ -8,8 +8,8 @@ pub enum Shape {
     Rectangle,
     Ellipse,
     Point,
-    Polygon(Vec<math2d::Point2f>),
-    Polyline(Vec<math2d::Point2f>),
+    Polygon(Vec<math2d::Vector2f>),
+    Polyline(Vec<math2d::Vector2f>),
 }
 
 impl Shape {
@@ -65,12 +65,12 @@ impl Shape {
         Ok(Shape::Polyline(points))
     }
 
-    fn parse_points(points: &str) -> Fallible<Vec<math2d::Point2f>> {
+    fn parse_points(points: &str) -> Fallible<Vec<math2d::Vector2f>> {
         points
             .split_whitespace()
             .map(|s| s.split(','))
             .filter_map(|mut i| Some((i.next()?, i.next()?)))
-            .map(|(x, y)| Ok((x.parse::<f32>()?, y.parse::<f32>()?).into()))
+            .map(|(x, y)| Ok([x.parse::<f32>()?, y.parse::<f32>()?].into()))
             .collect()
     }
 }

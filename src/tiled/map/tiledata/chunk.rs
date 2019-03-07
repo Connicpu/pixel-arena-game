@@ -1,3 +1,4 @@
+use super::CHUNK_SIZE;
 use crate::graphics::core::GraphicsCore;
 use crate::graphics::GraphicsState;
 use crate::tiled::map::tilesets::Tilesets;
@@ -10,21 +11,19 @@ use failure::Fallible;
 use glium::implement_vertex;
 use glium::uniforms::{MagnifySamplerFilter, MinifySamplerFilter, SamplerWrapFunction};
 use glium::VertexBuffer;
-use math2d::{Point2f, Sizef};
+use math2d::{Point2f, Vector2f};
 
 #[derive(Serialize, Deserialize)]
 pub struct Chunk {
-    pub width: u16,
-    pub height: u16,
-    pub data: Box<[TileId]>,
     pub used_tilesets: Box<[TilesetId]>,
+    pub data: Box<[TileId]>,
 
     #[serde(skip)]
     buffers: Option<Box<[VertexBuffer<TileInstance>]>>,
 }
 
 impl Chunk {
-    pub fn new(width: u16, height: u16, data: impl Into<Box<[TileId]>>) -> Self {
+    pub fn new(data: impl Into<Box<[TileId]>>) -> Self {
         let data = data.into();
 
         let used_tilesets = data
@@ -37,8 +36,6 @@ impl Chunk {
             .into_boxed_slice();
 
         Chunk {
-            width,
-            height,
             data,
             used_tilesets,
             buffers: None,
@@ -47,6 +44,9 @@ impl Chunk {
 
     pub fn validate(&self, sets: &Tilesets) -> Fallible<()> {
         use failure::err_msg;
+        if self.data.len() != (CHUNK_SIZE * CHUNK_SIZE) as usize {
+            return Err(err_msg("Chunk contains invalid number of tiles"));
+        }
         for &tileset in self.used_tilesets.iter() {
             // Make sure the tileset is valid for this map
             if sets.by_id(tileset).is_none() {
@@ -67,17 +67,46 @@ impl Chunk {
         Ok(())
     }
 
+    /// Ensure the buffers are initialized. This is safe to call every frame, it's a simple
+    /// is_some() check to instant return.
+    pub fn initialize(&mut self, core: &GraphicsCore) -> Fallible<()> {
+        if crate::helpers::likely(self.buffers.is_some()) {
+            return Ok(());
+        }
+
+        let mut buffers = Vec::with_capacity(self.used_tilesets.len());
+        let mut data = Vec::with_capacity(self.data.len());
+
+        for &ts_id in self.used_tilesets.iter() {
+            // Collect all of the tiles that should render for this tileset
+            for (i, &tile) in self.data.iter().enumerate() {
+                if tile.tileset() == ts_id {
+                    let x = (i as u16 % CHUNK_SIZE as u16) as u8;
+                    let y = (i as u16 / CHUNK_SIZE as u16) as u8;
+                    data.push(TileInstance {
+                        tile_pos: [x, y],
+                        tile_id: tile.tile().0,
+                    });
+                }
+            }
+
+            buffers.push(VertexBuffer::immutable(&core.display, &data)?);
+            data.clear();
+        }
+
+        self.buffers = Some(buffers.into_boxed_slice());
+
+        Ok(())
+    }
+
     pub fn render(
-        &mut self,
+        &self,
         graphics: &mut GraphicsState,
         sets: &Tilesets,
         position: Point2f,
-        tile_size: Sizef,
+        tile_size: Vector2f,
         layer: f32,
     ) -> Fallible<()> {
-        // Make sure the buffers have been initialized
-        self.init_buffers(&graphics.core)?;
-
         let buffers = self.buffers.as_ref().unwrap();
         let frame = graphics.frame.gameplay_frame().unwrap();
         for (i, &ts_id) in self.used_tilesets.iter().enumerate() {
@@ -105,7 +134,7 @@ impl Chunk {
                         .anisotropy(8),
                     rect_buffer: rect_buffer,
                     chunk_pos: [position.x, position.y],
-                    tile_size: [tile_size.width, tile_size.height],
+                    tile_size: [tile_size.x, tile_size.y],
                     layer: layer,
                 },
                 &DrawParameters {
@@ -119,36 +148,6 @@ impl Chunk {
                 },
             )?;
         }
-
-        Ok(())
-    }
-
-    fn init_buffers(&mut self, core: &GraphicsCore) -> Fallible<()> {
-        if self.buffers.is_some() {
-            return Ok(());
-        }
-
-        let mut buffers = Vec::with_capacity(self.used_tilesets.len());
-        let mut data = Vec::with_capacity(self.data.len());
-
-        for &ts_id in self.used_tilesets.iter() {
-            // Collect all of the tiles that should render for this tileset
-            for (i, &tile) in self.data.iter().enumerate() {
-                if tile.tileset() == ts_id {
-                    let x = (i as u16 % self.width) as u8;
-                    let y = (i as u16 / self.width) as u8;
-                    data.push(TileInstance {
-                        tile_pos: [x, y],
-                        tile_id: tile.tile().0,
-                    });
-                }
-            }
-
-            buffers.push(VertexBuffer::immutable(&core.display, &data)?);
-            data.clear();
-        }
-
-        self.buffers = Some(buffers.into_boxed_slice());
 
         Ok(())
     }

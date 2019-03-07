@@ -6,6 +6,11 @@
    <property name="flags" value="NULL"/>
   </properties>
  </tile>
+ <tile id="1">
+  <properties>
+   <property name="flags" value="NULL"/>
+  </properties>
+ </tile>
  <tile id="5">
   <objectgroup draworder="index">
    <object id="1" x="0" y="0" width="3" height="16">
@@ -31,11 +36,19 @@
  </tile>
  <tile id="7">
   <objectgroup draworder="index">
-   <object id="1" x="0" y="13" width="3" height="3"/>
-   <object id="2" x="13" y="13" width="3" height="3"/>
+   <object id="1" x="0" y="13" width="3" height="3">
+    <properties>
+     <property name="flags" value="CLIFF"/>
+    </properties>
+   </object>
+   <object id="2" x="13" y="13" width="3" height="3">
+    <properties>
+     <property name="flags" value="CLIFF"/>
+    </properties>
+   </object>
    <object id="3" x="3" y="13" width="10" height="3">
     <properties>
-     <property name="flags" value="LADDER"/>
+     <property name="flags" value="LADDER|CLIFF"/>
     </properties>
    </object>
   </objectgroup>
@@ -142,6 +155,25 @@
    </object>
   </objectgroup>
  </tile>
+ <tile id="51">
+  <objectgroup draworder="index">
+   <object id="1" x="0" y="12" width="4" height="4">
+    <properties>
+     <property name="flags" value="CLIFF"/>
+    </properties>
+   </object>
+   <object id="2" x="12" y="12" width="4" height="4">
+    <properties>
+     <property name="flags" value="CLIFF"/>
+    </properties>
+   </object>
+   <object id="3" x="4" y="12" width="8" height="4">
+    <properties>
+     <property name="flags" value="LADDER|CLIFF"/>
+    </properties>
+   </object>
+  </objectgroup>
+ </tile>
  <tile id="53">
   <objectgroup draworder="index">
    <object id="1" x="2" y="0" width="14" height="8">
@@ -225,6 +257,24 @@
      <property name="flags" value="PATH"/>
     </properties>
     <polygon points="0,0 4,0 4,-4 12,-4 12,0 16,0 16,8 12,8 12,12 4,12 4,9 0,9"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="112">
+  <objectgroup draworder="index">
+   <object id="1" x="2" y="0" width="14" height="16">
+    <properties>
+     <property name="flags" value="WALL"/>
+    </properties>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="113">
+  <objectgroup draworder="index">
+   <object id="1" x="0" y="0" width="14" height="16">
+    <properties>
+     <property name="flags" value="WALL"/>
+    </properties>
    </object>
   </objectgroup>
  </tile>
