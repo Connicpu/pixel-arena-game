@@ -11,7 +11,7 @@ use glium::{DrawParameters, Surface};
 
 use failure::ResultExt;
 
-#[derive(Default, System)]
+#[derive(Default, conniecs::System)]
 #[system_type(Entity)]
 #[process(process)]
 #[aspect(all(sprite, transform))]
@@ -20,14 +20,46 @@ pub struct RenderSprites {
 }
 
 fn process(r: &mut RenderSprites, entities: EntityIter, data: &mut Data) {
+    let map = &mut data.services.map;
     let graphics = &mut data.services.graphics;
-    let def_tex = graphics.textures.get(Default::default()).unwrap();
     let def_tid = TextureId::default();
     let def_sub = SubtextureId::default();
 
     let mut max_instances = 0;
     let mut num_draws = 0;
     let dt = data.services.time.delta;
+
+    // Draw terrain chunks
+    let viewport = graphics.camera.world_viewport();
+    for (layernum, layer) in map.layers.iter_mut().enumerate() {
+        use crate::tiled::map::layer::Layer;
+        use crate::tiled::map::tiledata::TileData;
+        use crate::tiled::map::tiledata::CHUNK_SIZE;
+        use math2d::Point2f;
+        use math2d::RectCorner::{BottomRight, TopLeft};
+
+        if let Layer::Tile(layer) = layer {
+            let topleft = TileData::chunk_pos(layer.data.tile_pos_at(viewport.corner(TopLeft)));
+            let botright =
+                TileData::chunk_pos(layer.data.tile_pos_at(viewport.corner(BottomRight)));
+            for y in botright.y..=topleft.y {
+                for x in topleft.x..=botright.x {
+                    if let Some(chunk) = layer.data.chunks.get_mut(&(x, y).into()) {
+                        chunk
+                            .initialize(&graphics.core)
+                            .expect("Chunks should be able to initialize their buffers");
+
+                        let pos = Point2f::new((x * CHUNK_SIZE) as f32, (-y * CHUNK_SIZE) as f32);
+                        chunk
+                            .render(graphics, &map.tilesets, pos, layernum as f32)
+                            .expect("Chunk rendering should not fail");
+                    }
+                }
+            }
+        }
+    }
+
+    let def_tex = graphics.textures.get(Default::default()).unwrap();
 
     for entity in entities {
         let transform = &mut data.components.transform[entity];

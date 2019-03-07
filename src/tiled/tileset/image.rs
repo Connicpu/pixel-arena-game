@@ -42,7 +42,13 @@ impl Image {
         let rect = rect.to_f32();
         let w = self.width as f32;
         let h = self.height as f32;
-        [rect.left / w, rect.top / h, rect.right / w, rect.bottom / h].into()
+        [
+            (rect.left + 0.35) / w,
+            (rect.top + 0.35) / h,
+            (rect.right - 0.35) / w,
+            (rect.bottom - 0.35) / h,
+        ]
+        .into()
     }
 
     pub fn from_image(img: image::RgbaImage) -> Fallible<Image> {

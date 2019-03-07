@@ -1,7 +1,7 @@
 use crate::graphics::systems as graphics;
 use crate::services;
 
-#[derive(SystemManager)]
+#[derive(conniecs::SystemManager)]
 pub struct Systems {
     update_time: services::time::UpdateTime,
 

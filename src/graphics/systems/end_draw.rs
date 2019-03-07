@@ -2,7 +2,7 @@ use crate::Data;
 
 use failure::ResultExt;
 
-#[derive(Default, System)]
+#[derive(Default, conniecs::System)]
 #[process]
 pub struct EndDraw;
 

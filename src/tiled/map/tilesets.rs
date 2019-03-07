@@ -1,3 +1,4 @@
+use crate::graphics::core::GraphicsCore;
 use crate::tiled::map::{LocalTileId, TileId, TilesetId};
 use crate::tiled::raw;
 use crate::tiled::tileset::Tileset;
@@ -26,6 +27,13 @@ impl Tilesets {
         let tilesets = Tilesets { tilesets };
         tilesets.validate()?;
         Ok(tilesets)
+    }
+
+    pub fn initialize(&mut self, core: &GraphicsCore) -> Fallible<()> {
+        for (_, tileset) in self.tilesets.iter_mut() {
+            tileset.initialize(core)?;
+        }
+        Ok(())
     }
 
     pub fn validate(&self) -> Fallible<()> {

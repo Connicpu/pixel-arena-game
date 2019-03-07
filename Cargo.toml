@@ -5,8 +5,7 @@ authors = ["Connie Hilarides <conni_h@outlook.com>"]
 edition = "2018"
 
 [dependencies]
-conniecs = "0.1.4"
-conniecs-derive = "0.1.2"
+conniecs = "0.2.0"
 winit = "0.18.1"
 failure = "0.1.5"
 math2d = { version = "0.2.0-alpha5", features = ["serialize"] }

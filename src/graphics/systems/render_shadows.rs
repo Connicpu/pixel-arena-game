@@ -7,7 +7,7 @@ use glium::{uniform, DrawParameters, Surface};
 
 use failure::ResultExt;
 
-#[derive(Default, System)]
+#[derive(Default, conniecs::System)]
 #[system_type(Entity)]
 #[process(process)]
 #[aspect(all(shadow, transform))]
@@ -27,6 +27,10 @@ fn process(r: &mut RenderShadows, entities: EntityIter, data: &mut Data) {
             size,
             z: t.z_layer,
         });
+    }
+
+    if r.collect.is_empty() {
+        return;
     }
 
     let graphics = &mut data.services.graphics;

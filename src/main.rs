@@ -1,7 +1,10 @@
-#![feature(manually_drop_take, range_contains, euclidean_division, core_intrinsics)]
+#![feature(
+    manually_drop_take,
+    range_contains,
+    euclidean_division,
+    core_intrinsics
+)]
 
-#[macro_use]
-extern crate conniecs_derive;
 #[macro_use]
 extern crate hex_literal;
 #[macro_use]
@@ -29,43 +32,49 @@ type Data = conniecs::DataHelper<Components, Services>;
 //type EntityData<'a> = conniecs::EntityData<'a, components::Components>;
 
 fn main() -> Fallible<()> {
-    {
+    let graphics = graphics::GraphicsState::new()?;
+
+    let map = {
         use crate::tiled::source::Source;
-        let map = tiled::load_tmx(Source::new_file("assets/maps/placeholder/simple-grass-test.tmx"))?;
-        let mut data = Vec::with_capacity(4096);
-        tiled::save_binmap(&mut data, &map)?;
-        println!("compressed size {}kb", data.len() as f64 / 1024.0);
-    }
+
+        let src = Source::new_file("assets/maps/placeholder/simple-grass-test.tmx");
+        let mut map = tiled::load_tmx(src)?;
+
+        map.tilesets.initialize(&graphics.core)?;
+
+        map
+    };
 
     // Create core services
     let services = Services {
-        graphics: graphics::GraphicsState::new()?,
+        graphics,
         quit_flag: false,
         jump: false,
         time: services::time::Time::new(),
+        map,
     };
 
     let mut world: World = conniecs::World::with_services(services);
 
     // Create some test entities
-    for y in -3..=3 {
-        for x in -5..=5 {
-            use components::Transform;
-            world.data.create_entity(|e, c, _s| {
-                c.transform.add(
-                    e,
-                    Transform {
-                        pos: [x as f32 * 1.4, y as f32 * 1.4].into(),
-                        offset: [0.0, 0.5].into(),
-                        ..Transform::default()
-                    },
-                );
+    // for y in -3..=3 {
+    //     for x in -5..=5 {
+    //         use components::Transform;
+    //         world.data.create_entity(|e, c, _s| {
+    //             c.transform.add(
+    //                 e,
+    //                 Transform {
+    //                     pos: [x as f32 * 1.4, y as f32 * 1.4].into(),
+    //                     offset: [0.0, 0.5].into(),
+    //                     ..Transform::default()
+    //                 },
+    //             );
 
-                c.sprite.add(e, Default::default());
-                c.shadow.add(e, Default::default());
-            });
-        }
-    }
+    //             c.sprite.add(e, Default::default());
+    //             c.shadow.add(e, Default::default());
+    //         });
+    //     }
+    // }
 
     while !world.data.services.quit_flag {
         world.update();

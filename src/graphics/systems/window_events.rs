@@ -1,6 +1,6 @@
 use crate::Data;
 
-#[derive(Default, System)]
+#[derive(Default, conniecs::System)]
 #[process]
 pub struct WindowEvents;
 
@@ -34,11 +34,17 @@ fn process(_: &mut WindowEvents, data: &mut Data) {
                             win.set_fullscreen(None);
                         }
                     }
+                    (Some(VK::W), Pressed) => {
+                        camera.position.y += 1.0;
+                    }
+                    (Some(VK::S), Pressed) => {
+                        camera.position.y -= 1.0;
+                    }
                     (Some(VK::D), Pressed) => {
-                        camera.position.x += 1.4;
+                        camera.position.x += 1.0;
                     }
                     (Some(VK::A), Pressed) => {
-                        camera.position.x -= 1.4;
+                        camera.position.x -= 1.0;
                     }
                     (Some(VK::Space), Pressed) => {
                         *jump = true;

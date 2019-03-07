@@ -10,6 +10,7 @@ use math2d::Vector2f;
 #[derive(Serialize, Deserialize)]
 pub enum Layer {
     Tile(TileLayer),
+    Unused,
 }
 
 impl Layer {
@@ -25,6 +26,7 @@ impl Layer {
     pub fn validate(&self, sets: &Tilesets) -> Fallible<()> {
         match self {
             Layer::Tile(layer) => layer.validate(sets),
+            Layer::Unused => unimplemented!(),
         }
     }
 }

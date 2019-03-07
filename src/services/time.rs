@@ -16,7 +16,7 @@ impl Time {
     }
 }
 
-#[derive(Default, System)]
+#[derive(Default, conniecs::System)]
 #[process = "update_time"]
 pub struct UpdateTime;
 

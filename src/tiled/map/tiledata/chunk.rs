@@ -11,7 +11,7 @@ use failure::Fallible;
 use glium::implement_vertex;
 use glium::uniforms::{MagnifySamplerFilter, MinifySamplerFilter, SamplerWrapFunction};
 use glium::VertexBuffer;
-use math2d::{Point2f, Vector2f};
+use math2d::Point2f;
 
 #[derive(Serialize, Deserialize)]
 pub struct Chunk {
@@ -104,7 +104,6 @@ impl Chunk {
         graphics: &mut GraphicsState,
         sets: &Tilesets,
         position: Point2f,
-        tile_size: Vector2f,
         layer: f32,
     ) -> Fallible<()> {
         let buffers = self.buffers.as_ref().unwrap();
@@ -114,6 +113,7 @@ impl Chunk {
             use glium::{uniform, DrawParameters, Surface};
 
             let tileset = sets.by_id(ts_id).unwrap();
+            let tile_size = tileset.tile_scale;
             let tex = tileset.tileset_image();
             let rect_buffer = tileset.tile_rect_buffer();
             let camera = graphics.camera.buffer();

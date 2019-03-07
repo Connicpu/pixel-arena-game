@@ -20,7 +20,7 @@ out vec2 v_uv;
 
 void main() {
     vec4 uvrect = texelFetch(rect_buffer, tile_id, 0);
-    vec2 pos = chunk_pos + (tile_pos * vec2(1, -1) + a_pos) * tile_size;
+    vec2 pos = chunk_pos + (tile_pos * vec2(1, -1) + a_pos * vec2(1.01, 1.01)) * tile_size;
 
     gl_Position = u_camera * vec4(pos, layer, 1);
     v_uv = mix(uvrect.xy, uvrect.zw, a_uv);

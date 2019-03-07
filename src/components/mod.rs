@@ -7,12 +7,10 @@ pub mod shadow;
 pub mod sprite;
 pub mod transform;
 
-#[derive(ComponentManager)]
+#[rustfmt::skip]
+#[derive(conniecs::ComponentManager)]
 pub struct Components {
-    #[hot]
-    pub transform: Comps<transform::Transform>,
-    #[hot]
-    pub sprite: Comps<sprite::Sprite>,
-    #[hot]
-    pub shadow: Comps<shadow::Shadow>,
+    #[hot] pub transform: Comps<transform::Transform>,
+    #[hot] pub sprite: Comps<sprite::Sprite>,
+    #[hot] pub shadow: Comps<shadow::Shadow>,
 }

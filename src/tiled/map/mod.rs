@@ -3,6 +3,7 @@ use self::tilesets::Tilesets;
 use crate::tiled::raw;
 
 use failure::Fallible;
+use math2d::Vector2f;
 
 pub mod layer;
 pub mod tiledata;
@@ -12,6 +13,7 @@ pub mod tilesets;
 pub struct Map {
     pub tilesets: Tilesets,
     pub layers: Vec<Layer>,
+    pub tile_size: Vector2f,
 }
 
 impl Map {
@@ -26,7 +28,11 @@ impl Map {
             .collect();
         let layers = layers?;
 
-        Ok(Map { tilesets, layers })
+        Ok(Map {
+            tilesets,
+            layers,
+            tile_size,
+        })
     }
 
     pub fn validate(&self) -> Fallible<()> {
@@ -56,10 +62,23 @@ impl TileId {
     }
 }
 
-#[derive(Copy, Clone, Default, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+impl std::fmt::Debug for TileId {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
+        fmt.debug_tuple("TileId")
+            .field(&self.tileset().0)
+            .field(&self.tile().0)
+            .finish()
+    }
+}
+
+#[derive(
+    Copy, Clone, Default, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, Debug,
+)]
 #[serde(transparent)]
 pub struct LocalTileId(pub u16);
 
-#[derive(Copy, Clone, Default, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(
+    Copy, Clone, Default, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, Debug,
+)]
 #[serde(transparent)]
 pub struct TilesetId(pub u16);
