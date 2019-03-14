@@ -1,7 +1,7 @@
 use crate::graphics::core::GraphicsCore;
 use crate::tiled::map::{LocalTileId, TileId, TilesetId};
 use crate::tiled::raw;
-use crate::tiled::tileset::Tileset;
+use crate::tiled::tileset::{tile::Tile, Tileset};
 
 use std::ops::Range;
 
@@ -55,7 +55,7 @@ impl Tilesets {
         Ok(())
     }
 
-    pub fn get_tile(&self, gid: raw::GlobalTileId) -> TileId {
+    pub fn tile_from_raw(&self, gid: raw::GlobalTileId) -> TileId {
         let gid = gid.0;
         for (i, (range, _)) in self.tilesets.iter().enumerate() {
             if gid < range.start {
@@ -69,11 +69,15 @@ impl Tilesets {
         TileId::default()
     }
 
-    pub fn by_id(&self, id: TilesetId) -> Option<&Tileset> {
+    pub fn get(&self, id: TilesetId) -> Option<&Tileset> {
         let id = id.0 as usize;
         if id == 0 {
             return None;
         }
         self.tilesets.get(id - 1).map(|(_, tileset)| tileset)
+    }
+
+    pub fn get_tile(&self, id: TileId) -> Option<&Tile> {
+        self.get(id.tileset()).and_then(|set| set.get(id.tile()))
     }
 }

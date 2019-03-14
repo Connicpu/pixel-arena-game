@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.2" tiledversion="1.2.2" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="16" tileheight="16" infinite="1" nextlayerid="2" nextobjectid="1">
+<map version="1.2" tiledversion="1.2.2" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="16" tileheight="16" infinite="1" nextlayerid="3" nextobjectid="2">
  <tileset firstgid="1" source="../../tilesets/placeholder/simple-grass.tsx"/>
  <layer id="1" name="Tile Layer 1" width="100" height="100">
   <data encoding="base64" compression="zlib">
    <chunk x="-16" y="-16" width="16" height="16">
-   eJxjYBgFQwWIAbE4Gh5I/eoU6uchQ786EpYhQz/IThEo1iJRvxkQ6yDptyJRPwgII+kXGQT6Aa4TBJo=
+   eJxjYBgFgwGIAbE4GXgg9atTqJ+HDP3qSFiGDP0gO0WgWAtJvxkQmxOBdZD0WzGQDoSR9IsMAv0AEqQLYw==
   </chunk>
    <chunk x="0" y="-16" width="16" height="16">
-   eJxjYBgFAwnE8WBJOuhXR8Lk6BeBYl4y9bMDMQcQy6K5RZ1I/SB7JIC4CIid0dxDrP81gNgaiEOQ9OsCsSUR+kFqXaA0sn5RIvTC9AcCsREQJ5OpH9leUvUDAMYRCYk=
+   eJxjYBgFAwnEycCSVNSvjoTJ0S8Cxbxk6mcHYg4glkVzCz73oPtfAoiLgNiZSPeg+18DiK2BOARJvy4Qm+PAlmj+d4HSyPpFGYgDILWBQGwExMlk6ke2l1T9AGGuDg8=
   </chunk>
    <chunk x="-16" y="0" width="16" height="16">
    eJxjYCANCAOxIRAbAbETiXph+kWgOIRC/Ylk6GcDYnYkTCowA2JzJDwKRsFQBgBpPwLa

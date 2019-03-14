@@ -1,9 +1,4 @@
-#![feature(
-    manually_drop_take,
-    range_contains,
-    euclidean_division,
-    core_intrinsics
-)]
+#![feature(range_contains, euclidean_division)]
 
 #[macro_use]
 extern crate hex_literal;
@@ -19,6 +14,8 @@ pub use systems::Systems;
 pub mod assets;
 pub mod components;
 pub mod graphics;
+pub mod input;
+pub mod physics;
 pub mod services;
 pub mod systems;
 pub mod tiled;
@@ -34,6 +31,7 @@ type Data = conniecs::DataHelper<Components, Services>;
 fn main() -> Fallible<()> {
     let graphics = graphics::GraphicsState::new()?;
 
+    let mut box2d = physics::World::new(&[0.0, -10.0].into());
     let map = {
         use crate::tiled::source::Source;
 
@@ -41,6 +39,16 @@ fn main() -> Fallible<()> {
         let mut map = tiled::load_tmx(src)?;
 
         map.tilesets.initialize(&graphics.core)?;
+
+        for layer in map.layers.iter_mut() {
+            if let tiled::map::layer::Layer::Tile(layer) = layer {
+                for (cpos, chunk) in layer.data.chunks.iter_mut() {
+                    use tiled::map::tiledata::CHUNK_SIZE;
+                    let pos = (cpos.to_f32().to_vector() * [1.0, -1.0] * CHUNK_SIZE as f32).to_point();
+                    chunk.create_physics(&map.tilesets, &pos, &mut box2d);
+                }
+            }
+        }
 
         map
     };
@@ -52,29 +60,10 @@ fn main() -> Fallible<()> {
         jump: false,
         time: services::time::Time::new(),
         map,
+        box2d,
     };
 
     let mut world: World = conniecs::World::with_services(services);
-
-    // Create some test entities
-    // for y in -3..=3 {
-    //     for x in -5..=5 {
-    //         use components::Transform;
-    //         world.data.create_entity(|e, c, _s| {
-    //             c.transform.add(
-    //                 e,
-    //                 Transform {
-    //                     pos: [x as f32 * 1.4, y as f32 * 1.4].into(),
-    //                     offset: [0.0, 0.5].into(),
-    //                     ..Transform::default()
-    //                 },
-    //             );
-
-    //             c.sprite.add(e, Default::default());
-    //             c.shadow.add(e, Default::default());
-    //         });
-    //     }
-    // }
 
     while !world.data.services.quit_flag {
         world.update();

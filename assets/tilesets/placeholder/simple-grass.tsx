@@ -155,6 +155,22 @@
    </object>
   </objectgroup>
  </tile>
+ <tile id="49">
+  <objectgroup draworder="index">
+   <object id="1" x="8" y="8">
+    <properties>
+     <property name="flags" value="PATH|RIGHT"/>
+    </properties>
+    <polyline points="0,0 8,0"/>
+   </object>
+   <object id="2" x="8" y="8">
+    <properties>
+     <property name="flags" value="PATH|LEFT"/>
+    </properties>
+    <polyline points="0,0 -8,0"/>
+   </object>
+  </objectgroup>
+ </tile>
  <tile id="51">
   <objectgroup draworder="index">
    <object id="1" x="0" y="12" width="4" height="4">
@@ -250,13 +266,73 @@
    </object>
   </objectgroup>
  </tile>
- <tile id="81">
+ <tile id="64">
   <objectgroup draworder="index">
-   <object id="1" x="0" y="4">
+   <object id="1" x="8" y="8">
     <properties>
-     <property name="flags" value="PATH"/>
+     <property name="flags" value="PATH|RIGHT"/>
     </properties>
-    <polygon points="0,0 4,0 4,-4 12,-4 12,0 16,0 16,8 12,8 12,12 4,12 4,9 0,9"/>
+    <polyline points="0,0 8,0"/>
+   </object>
+   <object id="2" x="8" y="8">
+    <properties>
+     <property name="flags" value="PATH|DOWN"/>
+    </properties>
+    <polyline points="0,0 0,8"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="65">
+  <objectgroup draworder="index">
+   <object id="2" x="8" y="8">
+    <properties>
+     <property name="flags" value="PATH|LEFT"/>
+    </properties>
+    <polyline points="0,0 -8,0"/>
+   </object>
+   <object id="3" x="8" y="8">
+    <properties>
+     <property name="flags" value="PATH|DOWN"/>
+    </properties>
+    <polyline points="0,0 0,8"/>
+   </object>
+   <object id="4" x="8" y="8">
+    <properties>
+     <property name="flags" value="PATH|RIGHT"/>
+    </properties>
+    <polyline points="0,0 8,0"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="66">
+  <objectgroup draworder="index">
+   <object id="1" x="8" y="8">
+    <properties>
+     <property name="flags" value="PATH|LEFT"/>
+    </properties>
+    <polyline points="0,0 -8,0"/>
+   </object>
+   <object id="2" x="8" y="8">
+    <properties>
+     <property name="flags" value="PATH|DOWN"/>
+    </properties>
+    <polyline points="0,0 0,8"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="83">
+  <objectgroup draworder="index">
+   <object id="1" x="8" y="8">
+    <properties>
+     <property name="flags" value="PATH|UP"/>
+    </properties>
+    <polyline points="0,0 0,-8"/>
+   </object>
+   <object id="3" x="8" y="8">
+    <properties>
+     <property name="flags" value="PATH|DOWN"/>
+    </properties>
+    <polyline points="0,0 0,8"/>
    </object>
   </objectgroup>
  </tile>

@@ -1,6 +1,7 @@
 use super::CHUNK_SIZE;
 use crate::graphics::core::GraphicsCore;
 use crate::graphics::GraphicsState;
+use crate::physics::MetaBody;
 use crate::tiled::map::tilesets::Tilesets;
 use crate::tiled::map::TileId;
 use crate::tiled::map::TilesetId;
@@ -18,8 +19,10 @@ pub struct Chunk {
     pub used_tilesets: Box<[TilesetId]>,
     pub data: Box<[TileId]>,
 
-    #[serde(skip)]
+    #[serde(skip)] // Don't serialize this field
     buffers: Option<Box<[VertexBuffer<TileInstance>]>>,
+    #[serde(skip)]
+    physics_body: Option<wrapped2d::b2::BodyHandle>,
 }
 
 impl Chunk {
@@ -39,6 +42,7 @@ impl Chunk {
             data,
             used_tilesets,
             buffers: None,
+            physics_body: None,
         }
     }
 
@@ -49,7 +53,7 @@ impl Chunk {
         }
         for &tileset in self.used_tilesets.iter() {
             // Make sure the tileset is valid for this map
-            if sets.by_id(tileset).is_none() {
+            if sets.get(tileset).is_none() {
                 return Err(err_msg("Chunk references invalid tileset"));
             }
         }
@@ -70,7 +74,7 @@ impl Chunk {
     /// Ensure the buffers are initialized. This is safe to call every frame, it's a simple
     /// is_some() check to instant return.
     pub fn initialize(&mut self, core: &GraphicsCore) -> Fallible<()> {
-        if crate::helpers::likely(self.buffers.is_some()) {
+        if self.buffers.is_some() {
             return Ok(());
         }
 
@@ -99,6 +103,34 @@ impl Chunk {
         Ok(())
     }
 
+    pub fn create_physics(
+        &mut self,
+        sets: &Tilesets,
+        pos: &Point2f,
+        physics: &mut crate::physics::World,
+    ) {
+        use wrapped2d::b2;
+
+        let mut def = b2::BodyDef::new();
+        def.body_type = b2::BodyType::Static;
+        def.position = [pos.x, pos.y].into();
+
+        let body = physics.create_body(&def);
+        self.physics_body = Some(body);
+
+        self.create_fixtures(sets, &mut physics.body_mut(body));
+    }
+
+    fn create_fixtures(&self, sets: &Tilesets, body: &mut MetaBody) {
+        for (i, &tid) in self.data.iter().enumerate() {
+            if let Some(tile) = sets.get_tile(tid) {
+                let x = (i % CHUNK_SIZE as usize) as f32 - 0.5;
+                let y = -((i / CHUNK_SIZE as usize) as f32) + 0.5;
+                tile.create_collider(&(x, y).into(), body);
+            }
+        }
+    }
+
     pub fn render(
         &self,
         graphics: &mut GraphicsState,
@@ -112,7 +144,7 @@ impl Chunk {
             use glium::index::{NoIndices, PrimitiveType};
             use glium::{uniform, DrawParameters, Surface};
 
-            let tileset = sets.by_id(ts_id).unwrap();
+            let tileset = sets.get(ts_id).unwrap();
             let tile_size = tileset.tile_scale;
             let tex = tileset.tileset_image();
             let rect_buffer = tileset.tile_rect_buffer();

@@ -24,7 +24,7 @@ impl Map {
         let layers: Fallible<_> = raw
             .layers
             .iter()
-            .map(|raw| Layer::from_raw(raw, &tilesets, tile_size))
+            .map(|raw| Layer::from_raw(raw, &tilesets))
             .collect();
         let layers = layers?;
 

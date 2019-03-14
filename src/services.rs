@@ -9,4 +9,5 @@ pub struct Services {
     pub graphics: GraphicsState,
     pub time: time::Time,
     pub map: crate::tiled::map::Map,
+    pub box2d: crate::physics::World,
 }

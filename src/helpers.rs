@@ -14,11 +14,3 @@ where
         Ok(self.map_err(failure::Error::from).context(msg)?)
     }
 }
-
-pub fn likely(b: bool) -> bool {
-    unsafe { std::intrinsics::likely(b) }
-}
-
-// pub fn unlikely(b: bool) -> bool {
-//     unsafe { std::intrinsics::unlikely(b) }
-// }

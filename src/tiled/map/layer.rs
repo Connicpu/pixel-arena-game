@@ -5,7 +5,6 @@ use crate::tiled::raw;
 use std::collections::HashMap;
 
 use failure::{err_msg, Fallible};
-use math2d::Vector2f;
 
 #[derive(Serialize, Deserialize)]
 pub enum Layer {
@@ -14,9 +13,9 @@ pub enum Layer {
 }
 
 impl Layer {
-    pub fn from_raw(raw: &raw::Layer, sets: &Tilesets, tile_size: Vector2f) -> Fallible<Self> {
+    pub fn from_raw(raw: &raw::Layer, sets: &Tilesets) -> Fallible<Self> {
         match raw {
-            raw::Layer::Tile(raw) => TileLayer::from_raw(raw, sets, tile_size).map(Layer::Tile),
+            raw::Layer::Tile(raw) => TileLayer::from_raw(raw, sets).map(Layer::Tile),
             raw::Layer::Object(_) => Err(err_msg("TODO: Object layers")),
             raw::Layer::Image(_) => Err(err_msg("TODO: Image layers")),
             raw::Layer::Group(_) => Err(err_msg("TODO: Object layers")),
@@ -40,7 +39,7 @@ pub struct TileLayer {
 }
 
 impl TileLayer {
-    pub fn from_raw(raw: &raw::TileLayer, sets: &Tilesets, tile_size: Vector2f) -> Fallible<Self> {
+    pub fn from_raw(raw: &raw::TileLayer, sets: &Tilesets) -> Fallible<Self> {
         let rawchunks = match &raw.data {
             raw::Data::Plain(_) => return Err(err_msg("TODO: Chunk up non-infinite maps manually")),
             raw::Data::Chunked(chunks) => chunks, // TODO: Handle a potential future where tiled saves uneven chunks
@@ -62,13 +61,13 @@ impl TileLayer {
             }
 
             let pos = TileData::chunk_pos((raw.x, raw.y).into());
-            let data: Vec<_> = raw.data.iter().map(|&gid| sets.get_tile(gid)).collect();
+            let data: Vec<_> = raw.data.iter().map(|&gid| sets.tile_from_raw(gid)).collect();
             let chunk = Chunk::new(data.into_boxed_slice());
             chunk.validate(sets)?;
             chunks.insert(pos, chunk);
         }
 
-        let data = TileData { tile_size, chunks };
+        let data = TileData { chunks };
 
         Ok(TileLayer {
             flags,

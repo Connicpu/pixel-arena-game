@@ -1,4 +1,5 @@
 use crate::graphics::core::GraphicsCore;
+use crate::tiled::map::LocalTileId;
 use crate::tiled::raw;
 use crate::tiled::tileset::tile::Tile;
 
@@ -27,6 +28,10 @@ pub struct Tileset {
 }
 
 impl Tileset {
+    pub fn get(&self, id: LocalTileId) -> Option<&Tile> {
+        self.tiles.get(id.0 as usize)
+    }
+
     pub fn from_raw(raw: &raw::Tileset, tile_size: Vector2f) -> Fallible<Tileset> {
         let tile_width = raw.tilewidth as u16;
         let tile_height = raw.tileheight as u16;

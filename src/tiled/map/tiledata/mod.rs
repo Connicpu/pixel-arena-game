@@ -3,8 +3,8 @@ use crate::tiled::map::tilesets::Tilesets;
 
 use std::collections::HashMap;
 
-use failure::{err_msg, Fallible};
-use math2d::{Point2f, Point2i, Vector2f};
+use failure::Fallible;
+use math2d::{Point2f, Point2i};
 
 pub mod chunk;
 mod chunk_serialization;
@@ -15,16 +15,12 @@ type ChunkMap = HashMap<Point2i, Chunk>;
 
 #[derive(Serialize, Deserialize)]
 pub struct TileData {
-    pub tile_size: Vector2f,
     #[serde(with = "chunk_serialization")]
     pub chunks: ChunkMap,
 }
 
 impl TileData {
     pub fn validate(&self, sets: &Tilesets) -> Fallible<()> {
-        if self.tile_size.len_squared().abs() <= std::f32::EPSILON {
-            return Err(err_msg("tile_size is invalid (zero vector)"));
-        }
         for chunk in self.chunks.values() {
             chunk.validate(sets)?;
         }
@@ -32,8 +28,8 @@ impl TileData {
     }
 
     pub fn tile_pos_at(&self, world_pos: Point2f) -> Point2i {
-        let x = (world_pos.x / self.tile_size.x).floor() as i32;
-        let y = (-world_pos.y / self.tile_size.y).floor() as i32;
+        let x = (world_pos.x).round() as i32;
+        let y = (-world_pos.y).round() as i32;
         (x, y).into()
     }
 
