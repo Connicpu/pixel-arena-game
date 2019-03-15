@@ -25,6 +25,13 @@ impl DebugVertex {
             a_color: [c.r, c.g, c.b, c.a],
         }
     }
+    
+    pub fn m2d(p: Point2f, c: &b2::Color) -> Self {
+        DebugVertex {
+            a_pos: [p.x, p.y],
+            a_color: [c.r, c.g, c.b, c.a],
+        }
+    }
 }
 
 implement_vertex!(DebugVertex, a_pos, a_color);
@@ -153,15 +160,23 @@ impl b2::Draw for DebugCollector<'_> {
             return;
         }
 
+        self.draw_polygon(verts, color);
+
         let mut color = color.clone();
         color.a *= 0.5;
 
-        // Just do a naive triangle fan layout
-        for i in 1..verts.len() - 1 {
+        if verts.len() == 3 {
             self.triangles.push(DebugVertex::new(&verts[0], &color));
-            self.triangles.push(DebugVertex::new(&verts[i], &color));
-            self.triangles.push(DebugVertex::new(&verts[i + 1], &color));
+            self.triangles.push(DebugVertex::new(&verts[1], &color));
+            self.triangles.push(DebugVertex::new(&verts[2], &color));
+            return;
         }
+
+        triangulate(verts.iter().map(|&p| Point2f::new(p.x, p.y)), |tri| {
+            self.triangles.push(DebugVertex::m2d(tri[0], &color));
+            self.triangles.push(DebugVertex::m2d(tri[1], &color));
+            self.triangles.push(DebugVertex::m2d(tri[2], &color));
+        });
     }
 
     fn draw_circle(&mut self, center: &b2::Vec2, radius: f32, color: &b2::Color) {
@@ -171,7 +186,7 @@ impl b2::Draw for DebugCollector<'_> {
         }
 
         const DIVISIONS: usize = 16;
-        let mut vertices = [[0.0, 0.0].into(); DIVISIONS];
+        let mut vertices = [ZERO; DIVISIONS];
         for i in 0..DIVISIONS {
             let t = i as f32 / DIVISIONS as f32 * 2.0 * PI;
             let x = center.x + t.cos() * radius;
@@ -194,7 +209,7 @@ impl b2::Draw for DebugCollector<'_> {
         }
 
         const DIVISIONS: usize = 16;
-        let mut vertices = [[0.0, 0.0].into(); DIVISIONS];
+        let mut vertices = [ZERO; DIVISIONS];
         for i in 0..DIVISIONS {
             let t = i as f32 / DIVISIONS as f32 * 2.0 * PI;
             let x = center.x + t.cos() * radius;
@@ -235,6 +250,54 @@ const RIGHT_COLOR: b2::Color = b2::Color {
     a: 1.0,
 };
 
+const ZERO: b2::Vec2 = b2::Vec2 { x: 0.0, y: 0.0 };
 const fn b2v(p: Point2f) -> b2::Vec2 {
     b2::Vec2 { x: p.x, y: p.y }
+}
+
+fn triangulate(mut points: impl Iterator<Item = Point2f>, mut addface: impl FnMut([Point2f; 3])) {
+    use lyon_path::Path;
+    use lyon_tessellation::geometry_builder::simple_builder;
+    use lyon_tessellation::{FillTessellator, FillVertex, VertexBuffers};
+
+    let path = {
+        let mut builder = Path::builder();
+        let p0 = match points.next() {
+            Some(p0) => p0,
+            None => return,
+        };
+        builder.move_to(epoint(p0));
+        for point in points {
+            builder.line_to(epoint(point));
+        }
+        builder.close();
+        builder.build()
+    };
+
+    let mut buffers: VertexBuffers<FillVertex, _> = VertexBuffers::new();
+    {
+        let mut vertex_builder = simple_builder(&mut buffers);
+        let mut tesselator = FillTessellator::new();
+
+        let res = tesselator.tessellate_path(path.iter(), &Default::default(), &mut vertex_builder);
+        if !res.is_ok() {
+            return;
+        }
+    }
+
+    for i_tri in buffers.indices.chunks(3) {
+        let v0 = buffers.vertices[i_tri[0] as usize];
+        let v1 = buffers.vertices[i_tri[1] as usize];
+        let v2 = buffers.vertices[i_tri[2] as usize];
+        
+        let p0 = Point2f::new(v0.position.x, v0.position.y);
+        let p1 = Point2f::new(v1.position.x, v1.position.y);
+        let p2 = Point2f::new(v2.position.x, v2.position.y);
+
+        addface([p0, p1, p2]);
+    }
+}
+
+fn epoint(p: Point2f) -> euclid::Point2D<f32> {
+    [p.x, p.y].into()
 }

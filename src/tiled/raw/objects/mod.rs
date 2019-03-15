@@ -113,6 +113,8 @@ pub struct Object {
 
 impl Object {
     pub fn parse_tag(context: &mut ParseContext, attrs: &[xa::OwnedAttribute]) -> Fallible<Object> {
+        use std::f32::consts::PI;
+
         let parse_order = context.parseorder();
         parse_tag! {
             context; attrs;
@@ -135,7 +137,7 @@ impl Object {
 
         let width = width.unwrap_or(0.0);
         let height = height.unwrap_or(0.0);
-        let rotation = rotation.unwrap_or(0.0);
+        let rotation = rotation.unwrap_or(0.0) * PI / 180.0;
         let visible = visible.map(|i| i != 0).unwrap_or(true);
         let template = template.map(|s| context.source.relative(&s));
         let properties = properties.pop().unwrap_or_default();

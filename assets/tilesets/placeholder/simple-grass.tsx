@@ -67,6 +67,52 @@
    </object>
   </objectgroup>
  </tile>
+ <tile id="9">
+  <objectgroup draworder="index">
+   <object id="1" x="0" y="0" width="3" height="16">
+    <properties>
+     <property name="flags" value="CLIFF"/>
+    </properties>
+   </object>
+   <object id="2" x="3" y="13" width="13" height="3">
+    <properties>
+     <property name="flags" value="CLIFF"/>
+    </properties>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="10">
+  <objectgroup draworder="index">
+   <object id="1" x="0" y="13" width="13" height="3">
+    <properties>
+     <property name="flags" value="CLIFF"/>
+    </properties>
+   </object>
+   <object id="2" x="13" y="0" width="3" height="16">
+    <properties>
+     <property name="flags" value="CLIFF"/>
+    </properties>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="11">
+  <objectgroup draworder="index">
+   <object id="1" x="0" y="0" width="3" height="16">
+    <properties>
+     <property name="flags" value="CLIFF"/>
+    </properties>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="12">
+  <objectgroup draworder="index">
+   <object id="1" x="13" y="0" width="3" height="16">
+    <properties>
+     <property name="flags" value="CLIFF"/>
+    </properties>
+   </object>
+  </objectgroup>
+ </tile>
  <tile id="21">
   <objectgroup draworder="index">
    <object id="1" x="2" y="0" width="14" height="16">
@@ -107,6 +153,69 @@
  <tile id="24">
   <objectgroup draworder="index">
    <object id="1" x="0" y="0" width="14" height="16"/>
+  </objectgroup>
+ </tile>
+ <tile id="25">
+  <objectgroup draworder="index">
+   <object id="1" x="2" y="0" width="14" height="16">
+    <properties>
+     <property name="flags" value="WALL"/>
+    </properties>
+   </object>
+   <object id="2" x="0" y="0" width="2" height="3">
+    <properties>
+     <property name="flags" value="CLIFF"/>
+    </properties>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="26">
+  <objectgroup draworder="index">
+   <object id="1" x="0" y="0" width="14" height="16">
+    <properties>
+     <property name="flags" value="WALL"/>
+    </properties>
+   </object>
+   <object id="2" x="14" y="0" width="2" height="3">
+    <properties>
+     <property name="flags" value="CLIFF"/>
+    </properties>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="27">
+  <objectgroup draworder="index">
+   <object id="1" x="0" y="0" width="3" height="16">
+    <properties>
+     <property name="flags" value="CLIFF"/>
+    </properties>
+   </object>
+   <object id="2" x="3" y="13" width="13" height="3">
+    <properties>
+     <property name="flags" value="CLIFF"/>
+    </properties>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="28">
+  <objectgroup draworder="index">
+   <object id="1" x="13" y="0" width="3" height="16">
+    <properties>
+     <property name="flags" value="CLIFF"/>
+    </properties>
+   </object>
+   <object id="2" x="0" y="13" width="13" height="3">
+    <properties>
+     <property name="flags" value="CLIFF"/>
+    </properties>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="33">
+  <objectgroup draworder="index">
+   <object id="1" x="8" y="4">
+    <polygon points="0,0 -4,4 -1,3 0,7 2,4 6,3 2,2"/>
+   </object>
   </objectgroup>
  </tile>
  <tile id="37">
@@ -155,6 +264,52 @@
    </object>
   </objectgroup>
  </tile>
+ <tile id="41">
+  <objectgroup draworder="index">
+   <object id="1" x="2" y="0" width="14" height="16">
+    <properties>
+     <property name="flags" value="WALL"/>
+    </properties>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="42">
+  <objectgroup draworder="index">
+   <object id="1" x="0" y="0" width="14" height="16">
+    <properties>
+     <property name="flags" value="WALL"/>
+    </properties>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="43">
+  <objectgroup draworder="index">
+   <object id="1" x="0" y="0" width="3" height="16">
+    <properties>
+     <property name="flags" value="CLIFF"/>
+    </properties>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="44">
+  <objectgroup draworder="index">
+   <object id="1" x="13" y="0" width="3" height="16">
+    <properties>
+     <property name="flags" value="CLIFF"/>
+    </properties>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="48">
+  <objectgroup draworder="index">
+   <object id="1" x="8" y="8">
+    <properties>
+     <property name="flags" value="PATH|RIGHT"/>
+    </properties>
+    <polyline points="0,0 8,0"/>
+   </object>
+  </objectgroup>
+ </tile>
  <tile id="49">
   <objectgroup draworder="index">
    <object id="1" x="8" y="8">
@@ -171,19 +326,29 @@
    </object>
   </objectgroup>
  </tile>
+ <tile id="50">
+  <objectgroup draworder="index">
+   <object id="1" x="9" y="8">
+    <properties>
+     <property name="flags" value="PATH|LEFT"/>
+    </properties>
+    <polyline points="0,0 -9,0"/>
+   </object>
+  </objectgroup>
+ </tile>
  <tile id="51">
   <objectgroup draworder="index">
-   <object id="1" x="0" y="12" width="4" height="4">
+   <object id="1" x="0" y="13" width="3" height="3">
     <properties>
      <property name="flags" value="CLIFF"/>
     </properties>
    </object>
-   <object id="2" x="12" y="12" width="4" height="4">
+   <object id="2" x="13" y="13" width="3" height="3">
     <properties>
      <property name="flags" value="CLIFF"/>
     </properties>
    </object>
-   <object id="3" x="4" y="12" width="8" height="4">
+   <object id="3" x="3" y="13" width="10" height="3">
     <properties>
      <property name="flags" value="LADDER|CLIFF"/>
     </properties>
@@ -266,6 +431,24 @@
    </object>
   </objectgroup>
  </tile>
+ <tile id="57">
+  <objectgroup draworder="index">
+   <object id="1" x="2" y="0" width="14" height="14">
+    <properties>
+     <property name="flags" value="WALL"/>
+    </properties>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="58">
+  <objectgroup draworder="index">
+   <object id="1" x="0" y="0" width="14" height="14">
+    <properties>
+     <property name="flags" value="WALL"/>
+    </properties>
+   </object>
+  </objectgroup>
+ </tile>
  <tile id="64">
   <objectgroup draworder="index">
    <object id="1" x="8" y="8">
@@ -320,6 +503,38 @@
    </object>
   </objectgroup>
  </tile>
+ <tile id="67">
+  <objectgroup draworder="index">
+   <object id="1" x="8" y="8">
+    <properties>
+     <property name="flags" value="PATH|DOWN"/>
+    </properties>
+    <polyline points="0,0 0,8"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="82">
+  <objectgroup draworder="index">
+   <object id="2" x="8" y="8">
+    <properties>
+     <property name="flags" value="PATH|UP"/>
+    </properties>
+    <polyline points="0,0 0,-8"/>
+   </object>
+   <object id="3" x="8" y="8">
+    <properties>
+     <property name="flags" value="PATH|LEFT"/>
+    </properties>
+    <polyline points="0,0 -8,0"/>
+   </object>
+   <object id="4" x="8" y="8">
+    <properties>
+     <property name="flags" value="PATH|DOWN"/>
+    </properties>
+    <polyline points="0,0 0,8"/>
+   </object>
+  </objectgroup>
+ </tile>
  <tile id="83">
   <objectgroup draworder="index">
    <object id="1" x="8" y="8">
@@ -333,6 +548,70 @@
      <property name="flags" value="PATH|DOWN"/>
     </properties>
     <polyline points="0,0 0,8"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="96">
+  <objectgroup draworder="index">
+   <object id="1" x="8" y="8">
+    <properties>
+     <property name="flags" value="PATH|UP"/>
+    </properties>
+    <polyline points="0,0 0,-8"/>
+   </object>
+   <object id="2" x="8" y="8">
+    <properties>
+     <property name="flags" value="PATH|RIGHT"/>
+    </properties>
+    <polyline points="0,0 8,0"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="97">
+  <objectgroup draworder="index">
+   <object id="1" x="8" y="8">
+    <properties>
+     <property name="flags" value="PATH|UP"/>
+    </properties>
+    <polyline points="0,0 0,-8"/>
+   </object>
+   <object id="2" x="8" y="8">
+    <properties>
+     <property name="flags" value="PATH|LEFT"/>
+    </properties>
+    <polyline points="0,0 -8,0"/>
+   </object>
+   <object id="3" x="8" y="8">
+    <properties>
+     <property name="flags" value="PATH|RIGHT"/>
+    </properties>
+    <polyline points="0,0 8,0"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="98">
+  <objectgroup draworder="index">
+   <object id="2" x="8" y="8">
+    <properties>
+     <property name="flags" value="PATH|UP"/>
+    </properties>
+    <polyline points="0,0 0,-8"/>
+   </object>
+   <object id="3" x="8" y="8">
+    <properties>
+     <property name="flags" value="PATH|LEFT"/>
+    </properties>
+    <polyline points="0,0 -8,0"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="99">
+  <objectgroup draworder="index">
+   <object id="1" x="8" y="8">
+    <properties>
+     <property name="flags" value="PATH|UP"/>
+    </properties>
+    <polyline points="0,0 0,-8"/>
    </object>
   </objectgroup>
  </tile>

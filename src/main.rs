@@ -44,7 +44,8 @@ fn main() -> Fallible<()> {
             if let tiled::map::layer::Layer::Tile(layer) = layer {
                 for (cpos, chunk) in layer.data.chunks.iter_mut() {
                     use tiled::map::tiledata::CHUNK_SIZE;
-                    let pos = (cpos.to_f32().to_vector() * [1.0, -1.0] * CHUNK_SIZE as f32).to_point();
+                    let pos =
+                        (cpos.to_f32().to_vector() * [1.0, -1.0] * CHUNK_SIZE as f32).to_point();
                     chunk.create_physics(&map.tilesets, &pos, &mut box2d);
                 }
             }
@@ -64,6 +65,26 @@ fn main() -> Fallible<()> {
     };
 
     let mut world: World = conniecs::World::with_services(services);
+
+    world.data.create_entity(|e, c, s| {
+        use crate::components::Transform;
+
+        let transform = Transform {
+            scale: [0.5, 0.5].into(),
+            offset: [0.0, 0.25].into(),
+            z_layer: 1.0,
+            ..Default::default()
+        };
+
+        let tm = &mut s.graphics.textures;
+        let core = &s.graphics.core;
+        let sprite = tm.load_simple("characters/playertemp.png", core).unwrap();
+
+        c.transform.add(e, transform);
+        c.sprite.add(e, sprite);
+        c.shadow.add(e, Default::default());
+        c.player.add(e, ());
+    });
 
     while !world.data.services.quit_flag {
         world.update();

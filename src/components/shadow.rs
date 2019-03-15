@@ -7,8 +7,9 @@ pub struct Shadow {
 impl Default for Shadow {
     fn default() -> Self {
         Shadow {
-            scale: 1.25,
+            scale: 0.5,
             size_factor: -1.0,
         }
     }
 }
+

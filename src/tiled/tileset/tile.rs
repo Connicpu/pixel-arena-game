@@ -14,15 +14,17 @@ impl Tile {
     pub fn from_raw(raw: &raw::Tile, tile_size: Vector2f) -> Fallible<Self> {
         let flags = TileFlags::from_raw(&raw.properties)?;
 
-        let colliders: Fallible<Vec<Collider>> = raw
+        let mut colliders = Vec::new();
+        for desc in raw
             .objects
             .as_ref()
             .map(|obj| &obj.objects[..])
             .unwrap_or(&[])
             .iter()
-            .map(|raw| Collider::from_raw(raw, tile_size))
-            .collect();
-        let colliders = colliders?.into_boxed_slice();
+        {
+            Collider::from_raw(desc, tile_size, &mut colliders)?;
+        }
+        let colliders = colliders.into_boxed_slice();
 
         Ok(Tile { flags, colliders })
     }
@@ -37,18 +39,16 @@ impl Tile {
         let pos = pos.to_vector();
 
         for collider in self.colliders.iter() {
+            let mat = M::rotation(-collider.rotation, collider.origin) * M::translation(pos);
+
             let mut def = b2::FixtureDef::new();
             def.is_sensor = collider.flags.is_sensor();
             match &collider.shape {
-                Shape::Rectangle(mut rect) => {
-                    rect.top = -rect.top;
-                    rect.bottom = -rect.bottom;
-                    let rect = rect.translated_by(pos);
-                    let rotate = M::rotation(collider.rotation, rect.corner(TopLeft));
-                    let tl = rect.corner(TopLeft) * rotate;
-                    let tr = rect.corner(TopRight) * rotate;
-                    let bl = rect.corner(BottomLeft) * rotate;
-                    let br = rect.corner(BottomRight) * rotate;
+                Shape::Rectangle(rect) => {
+                    let tl = rect.corner(TopLeft) * mat;
+                    let tr = rect.corner(TopRight) * mat;
+                    let bl = rect.corner(BottomLeft) * mat;
+                    let br = rect.corner(BottomRight) * mat;
                     let shape = b2::PolygonShape::new_with(&[
                         [tl.x, tl.y].into(),
                         [tr.x, tr.y].into(),
@@ -58,23 +58,20 @@ impl Tile {
                     body.create_fixture_with(&shape, &mut def, collider.flags);
                 }
                 Shape::Ellipse(ellipse) => {
-                    let center = Point2f::new(ellipse.center.x, -ellipse.center.y) + pos;
+                    let half_vec = Vector2f::new(ellipse.radius_x, -ellipse.radius_y);
+                    let center = collider.origin + half_vec;
                     let min_rad = ellipse.radius_x.min(ellipse.radius_y);
                     let max_rad = ellipse.radius_x.max(ellipse.radius_y);
 
                     // Check if this is an ellipse (not a circle)
                     if ulps_ne!(ellipse.radius_x, ellipse.radius_y) {
-                        let rotate = M::rotation(
-                            collider.rotation,
-                            center - [ellipse.radius_x, ellipse.radius_y],
-                        );
-                        const DIVISIONS: usize = 36;
+                        const DIVISIONS: usize = 16;
                         let mut points: [b2::Vec2; DIVISIONS] = [[0.0, 0.0].into(); DIVISIONS];
                         for i in 0..DIVISIONS {
                             let t = (i as f32 / DIVISIONS as f32) * 2.0 * PI;
-                            let x = ellipse.radius_x * t.cos();
-                            let y = ellipse.radius_y * t.sin();
-                            let p = rotate.transform_point((x, y));
+                            let x = center.x + ellipse.radius_x * t.cos();
+                            let y = center.y + ellipse.radius_y * t.sin();
+                            let p = mat.transform_point((x, y));
                             points[i] = [p.x, p.y].into();
                         }
                         let shape = b2::ChainShape::new_loop(&points);
@@ -87,37 +84,33 @@ impl Tile {
                     }
 
                     // Create the main shape
+                    let center = center * mat;
                     let shape = b2::CircleShape::new_with([center.x, center.y].into(), min_rad);
                     body.create_fixture_with(&shape, &mut def, collider.flags);
                 }
-                Shape::Polygon(points) | Shape::Polyline(points) => {
+                Shape::Triangle(tri) => {
+                    let p1 = tri[0] * mat;
+                    let p2 = tri[1] * mat;
+                    let p3 = tri[2] * mat;
+
+                    let shape = b2::PolygonShape::new_with(&[bpoint(p1), bpoint(p2), bpoint(p3)]);
+                    body.create_fixture_with(&shape, &mut def, collider.flags);
+                }
+                Shape::Chain(points) => {
                     // Skip if an empty polygon somehow makes it in
                     if points.is_empty() {
                         continue;
                     }
 
                     // Make an array of our b2 points rotated around the dumb origin that tiled uses
-                    let rotate = M::rotation(collider.rotation, points[0] + pos);
                     let points = points
                         .iter()
-                        .map(|&p| Point2f::new(p.x, -p.y))
-                        .map(|p| p + pos)
-                        .map(|p| p * rotate)
+                        .map(|&p| p * mat)
                         .map(|p| [p.x, p.y].into())
                         .collect::<Vec<_>>();
 
-                    // Create either the polygon or chain asked for
-                    match &collider.shape {
-                        Shape::Polygon(_) => {
-                            let shape = b2::PolygonShape::new_with(&points);
-                            body.create_fixture_with(&shape, &mut def, collider.flags);
-                        }
-                        Shape::Polyline(_) => {
-                            let shape = b2::ChainShape::new_chain(&points);
-                            body.create_fixture_with(&shape, &mut def, collider.flags);
-                        }
-                        _ => unreachable!(),
-                    }
+                    let shape = b2::ChainShape::new_chain(&points);
+                    body.create_fixture_with(&shape, &mut def, collider.flags);
                 }
                 _ => unimplemented!(),
             }
@@ -129,48 +122,65 @@ impl Tile {
 pub struct Collider {
     pub shape: Shape,
     pub rotation: f32,
+    pub origin: Point2f,
     pub flags: TileFlags,
 }
 
 impl Collider {
-    pub fn from_raw(raw: &raw::Object, tile_size: Vector2f) -> Fallible<Self> {
+    pub fn from_raw(
+        raw: &raw::Object,
+        tile_size: Vector2f,
+        colliders: &mut Vec<Self>,
+    ) -> Fallible<()> {
         use crate::tiled::raw::Shape as RawShape;
-        use std::f32::consts::PI;
 
         let flags = TileFlags::from_raw(&raw.properties)?;
-        let rotation = (raw.rotation * PI / 2.0).rem_euclid(PI * 2.0);
+        let rotation = raw.rotation;
+        let origin = (Vector2f::new(raw.x, -raw.y) / tile_size).to_point();
 
         let shape = {
-            let pos = (Vector2f::new(raw.x, raw.y) / tile_size).to_point();
-            let size = Vector2f::new(raw.width, raw.height) / tile_size;
+            let size = Vector2f::new(raw.width, -raw.height) / tile_size;
             let radius = size * 0.5;
 
             match &raw.shape {
-                RawShape::Rectangle => Shape::Rectangle((pos, pos + size).into()),
-                RawShape::Point => Shape::Point(pos),
+                RawShape::Rectangle => Shape::Rectangle((origin, origin + size).into()),
+                RawShape::Point => Shape::Point(origin),
                 RawShape::Ellipse => {
-                    Shape::Ellipse((pos + radius, radius.x.abs(), radius.y.abs()).into())
+                    Shape::Ellipse((origin, radius.x.abs(), radius.y.abs()).into())
                 }
-                RawShape::Polygon(rel_points) => Shape::Polygon(
+                RawShape::Polyline(rel_points) => Shape::Chain(
                     rel_points
                         .iter()
-                        .map(|&rel| pos + rel / tile_size)
+                        .map(|&p| Vector2f::new(p.x, -p.y))
+                        .map(|p| origin + p / tile_size)
                         .collect(),
                 ),
-                RawShape::Polyline(rel_points) => Shape::Polyline(
-                    rel_points
+                RawShape::Polygon(rel_points) => {
+                    let points = rel_points
                         .iter()
-                        .map(|&rel| pos + rel / tile_size)
-                        .collect(),
-                ),
+                        .map(|&p| Vector2f::new(p.x, -p.y))
+                        .map(|p| origin + p / tile_size);
+                    triangulate(points, |tri| {
+                        let shape = Shape::Triangle(tri);
+                        colliders.push(Collider {
+                            shape,
+                            rotation,
+                            origin,
+                            flags,
+                        });
+                    });
+                    return Ok(());
+                }
             }
         };
 
-        Ok(Collider {
+        colliders.push(Collider {
             shape,
             rotation,
+            origin,
             flags,
-        })
+        });
+        Ok(())
     }
 }
 
@@ -179,8 +189,8 @@ pub enum Shape {
     Rectangle(math2d::Rectf),
     Point(math2d::Point2f),
     Ellipse(math2d::Ellipse),
-    Polygon(Vec<math2d::Point2f>),
-    Polyline(Vec<math2d::Point2f>),
+    Triangle([math2d::Point2f; 3]),
+    Chain(Box<[math2d::Point2f]>),
 }
 
 #[auto_enum::enum_flags(u32)]
@@ -229,4 +239,55 @@ impl TileFlags {
     pub fn is_sensor(self) -> bool {
         self & (TileFlags::LADDER | TileFlags::PATH) != TileFlags::NONE
     }
+}
+
+fn triangulate(mut points: impl Iterator<Item = Point2f>, mut addface: impl FnMut([Point2f; 3])) {
+    use lyon_path::Path;
+    use lyon_tessellation::geometry_builder::simple_builder;
+    use lyon_tessellation::{FillTessellator, FillVertex, VertexBuffers};
+
+    let path = {
+        let mut builder = Path::builder();
+        let p0 = match points.next() {
+            Some(p0) => p0,
+            None => return,
+        };
+        builder.move_to(epoint(p0));
+        for point in points {
+            builder.line_to(epoint(point));
+        }
+        builder.close();
+        builder.build()
+    };
+
+    let mut buffers: VertexBuffers<FillVertex, _> = VertexBuffers::new();
+    {
+        let mut vertex_builder = simple_builder(&mut buffers);
+        let mut tesselator = FillTessellator::new();
+
+        let res = tesselator.tessellate_path(path.iter(), &Default::default(), &mut vertex_builder);
+        if !res.is_ok() {
+            return;
+        }
+    }
+
+    for i_tri in buffers.indices.chunks(3) {
+        let v0 = buffers.vertices[i_tri[0] as usize];
+        let v1 = buffers.vertices[i_tri[1] as usize];
+        let v2 = buffers.vertices[i_tri[2] as usize];
+        
+        let p0 = Point2f::new(v0.position.x, v0.position.y);
+        let p1 = Point2f::new(v1.position.x, v1.position.y);
+        let p2 = Point2f::new(v2.position.x, v2.position.y);
+
+        addface([p0, p1, p2]);
+    }
+}
+
+fn epoint(p: Point2f) -> euclid::Point2D<f32> {
+    [p.x, p.y].into()
+}
+
+fn bpoint(p: Point2f) -> wrapped2d::b2::Vec2 {
+    [p.x, p.y].into()
 }
